@@ -11,10 +11,7 @@ import (
 	"github.com/robertvitoriano/penguin-server/models"
 )
 
-var users = []models.User{
-	{ID: "1", Name: "Penguin 1"},
-	{ID: "2", Name: "Penguin 2"},
-}
+var users = []models.User{}
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
