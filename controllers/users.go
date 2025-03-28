@@ -3,15 +3,23 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 	"github.com/robertvitoriano/penguin-server/models"
 )
 
 var users = []models.User{}
+var currentUserId string
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -29,22 +37,32 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "User not found", http.StatusNotFound)
 }
 
-func CreateUser(responseWriter http.ResponseWriter, request *http.Request) {
+func CreateUser(responseWriter http.ResponseWriter, request *http.Request, websocketConnection *websocket.Conn) {
 
 	min, max := 10, 255
+
 	var r = rand.Intn(max-min+1) + min
 	var g = rand.Intn(max-min+1) + min
 	var b = rand.Intn(max-min+1) + min
 	var a = rand.Intn(100)
 
+	err := websocketConnection.WriteMessage(websocket.BinaryMessage, []byte("User created"))
+
+	if err != nil {
+		log.Println("Write error:", err)
+		return
+	}
+
 	newColor := fmt.Sprintf("rgba(%d, %d, %d, %.2f)", r, g, b, float64(a)/100)
 
 	var newUser models.User
+
 	json.NewDecoder(request.Body).Decode(&newUser)
 
 	newUser.Color = newColor
 	newUUID := uuid.New().String()
 	newUser.ID = newUUID
+	currentUserId = newUUID
 	users = append(users, newUser)
 
 	responseWriter.Header().Set("Content-Type", "application/json")
