@@ -17,12 +17,21 @@ type Message struct {
 	Content string `json:"content"`
 }
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
 func (ws *Websocket) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 
 	ws.connection = conn
 
 	if err != nil {
+		log.Println("There was an error")
 		log.Println(err)
 		return
 	}
