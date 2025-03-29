@@ -14,17 +14,12 @@ import (
 )
 
 var users = []models.User{}
-var currentUserId string
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(users)
 }
+
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	for _, user := range users {
@@ -62,7 +57,6 @@ func CreateUser(responseWriter http.ResponseWriter, request *http.Request, webso
 	newUser.Color = newColor
 	newUUID := uuid.New().String()
 	newUser.ID = newUUID
-	currentUserId = newUUID
 	users = append(users, newUser)
 
 	responseWriter.Header().Set("Content-Type", "application/json")

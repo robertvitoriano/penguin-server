@@ -31,7 +31,6 @@ func (ws *Websocket) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 	ws.connection = conn
 
 	if err != nil {
-		log.Println("There was an error")
 		log.Println(err)
 		return
 	}
