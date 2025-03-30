@@ -8,19 +8,19 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/robertvitoriano/penguin-server/auth"
-	gameEvents "github.com/robertvitoriano/penguin-server/enums"
 	"github.com/robertvitoriano/penguin-server/models"
 	"github.com/robertvitoriano/penguin-server/repositories"
+	receiveEvents "github.com/robertvitoriano/penguin-server/reveiveEvents"
 )
 
 type Websocket struct {
 	connection *websocket.Conn
 }
 
-type Message struct {
-	Event    string          `json:"event"`
-	Token    string          `json:"token"`
-	Position models.Position `json:"position"`
+type ReceiveMessage struct {
+	Event    receiveEvents.ReceiveEvent `json:"event"`
+	Token    string                     `json:"token"`
+	Position models.Position            `json:"position"`
 }
 
 var upgrader = websocket.Upgrader{
@@ -44,33 +44,44 @@ func (ws *Websocket) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("trying to connect...")
 
 	for {
-		messageType, data, err := conn.ReadMessage()
+		_, data, err := ws.connection.ReadMessage()
 
 		if err != nil {
 			fmt.Println("There was an error")
 		}
 
-		var message Message
+		var receiveMessage ReceiveMessage
 
-		err = json.Unmarshal(data, &message)
+		err = json.Unmarshal(data, &receiveMessage)
 
 		if err != nil {
 			fmt.Println("Error parsing json")
 		}
 
-		if message.Event == "close" {
+		if receiveMessage.Event == receiveEvents.Close {
 			break
 		}
 
-		claims, err := auth.ParseToken(message.Token)
+		ws.handleIncomingMessage(receiveMessage)
 
-		if message.Event == string(gameEvents.START_GAME) {
+	}
+
+	ws.connection.Close()
+
+}
+
+func (ws *Websocket) handleIncomingMessage(receiveMessage ReceiveMessage) {
+
+	switch receiveMessage.Event {
+	case receiveEvents.StartGame:
+		{
+			claims, err := auth.ParseToken(receiveMessage.Token)
 
 			for _, player := range repositories.Players {
 				if player.ID == claims["id"] {
 
-					player.Position.X = message.Position.X
-					player.Position.Y = message.Position.Y
+					player.Position.X = receiveMessage.Position.X
+					player.Position.Y = receiveMessage.Position.Y
 
 					playersJSON, err := json.Marshal(repositories.Players)
 
@@ -78,7 +89,7 @@ func (ws *Websocket) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 						fmt.Println("Error conveting players to json")
 					}
 
-					conn.WriteMessage(messageType, playersJSON)
+					ws.connection.WriteMessage(websocket.BinaryMessage, playersJSON)
 
 					break
 				}
@@ -90,7 +101,5 @@ func (ws *Websocket) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-
-	conn.Close()
 
 }
