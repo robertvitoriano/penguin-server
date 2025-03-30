@@ -16,6 +16,7 @@ type Websocket struct {
 
 type Message struct {
 	Content string `json:"content"`
+	Token   string `json:token`
 }
 
 var upgrader = websocket.Upgrader{
@@ -53,11 +54,18 @@ func (ws *Websocket) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Error parsing json")
 		}
 
-		if message.Content == string(gameEvents.START_GAME) {
-			conn.WriteMessage(messageType, []byte("Hello client"))
+		if message.Content == "close" {
+			break
 		}
 
-		fmt.Println(message.Content)
+		if message.Content == string(gameEvents.START_GAME) {
+			// claims, err := auth.ParseToken(message.Token)
+
+			if err != nil {
+				fmt.Println("Error parsing token")
+			}
+			conn.WriteMessage(messageType, []byte("Hello client"))
+		}
 
 	}
 

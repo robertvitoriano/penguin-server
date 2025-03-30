@@ -14,11 +14,11 @@ var ws Websocket
 
 func main() {
 	router := mux.NewRouter()
-	router.HandleFunc("/users/{id}", controllers.GetUser).Methods("GET")
-	router.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
-		controllers.CreateUser(w, r, ws.connection)
+	router.HandleFunc("/players/{id}", controllers.GetPlayer).Methods("GET")
+	router.HandleFunc("/players", func(w http.ResponseWriter, r *http.Request) {
+		controllers.CreatePlayer(w, r, ws.connection)
 	}).Methods("POST")
-	router.HandleFunc("/users", controllers.GetUsers).Methods("GET")
+	router.HandleFunc("/players", controllers.GetPlayers).Methods("GET")
 
 	router.HandleFunc("/", ws.serveWebsocket).Methods("GET")
 	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
