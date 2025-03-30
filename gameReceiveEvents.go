@@ -7,14 +7,22 @@ const (
 	PlayerMoved GameReceiveEvent = "player_moved"
 )
 
+type Position struct {
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
+}
+
+type StartGameEvent struct {
+	Token    string   `json:"token"`
+	Position Position `json:"position"`
+}
+
+type PlayerMovedEvent struct {
+	Token    string   `json:"token"`
+	Position Position `json:"position"`
+}
+
 var receiveEventDefinitions = map[GameReceiveEvent]interface{}{
-	StartGame: struct {
-		Event string `json:"event"`
-		Token string `json:"token"`
-	}{},
-	PlayerMoved: struct {
-		Token string  `json:"token"`
-		X     float64 `json:"x"`
-		Y     float64 `json:"y"`
-	}{},
+	StartGame:   StartGameEvent{},
+	PlayerMoved: PlayerMovedEvent{},
 }

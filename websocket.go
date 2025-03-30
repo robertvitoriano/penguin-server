@@ -8,19 +8,15 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/robertvitoriano/penguin-server/auth"
-	"github.com/robertvitoriano/penguin-server/models"
 	"github.com/robertvitoriano/penguin-server/repositories"
-	receiveEvents "github.com/robertvitoriano/penguin-server/reveiveEvents"
 )
 
 type Websocket struct {
 	connection *websocket.Conn
 }
 
-type ReceiveMessage struct {
-	Event    receiveEvents.ReceiveEvent `json:"event"`
-	Token    string                     `json:"token"`
-	Position models.Position            `json:"position"`
+type BaseMessage struct {
+	Event string `json:"event"`
 }
 
 var upgrader = websocket.Upgrader{
@@ -50,7 +46,7 @@ func (ws *Websocket) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("There was an error")
 		}
 
-		var receiveMessage ReceiveMessage
+		var receiveMessage BaseMessage
 
 		err = json.Unmarshal(data, &receiveMessage)
 
@@ -58,30 +54,35 @@ func (ws *Websocket) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Error parsing json")
 		}
 
-		if receiveMessage.Event == receiveEvents.Close {
-			break
-		}
-
-		ws.handleIncomingMessage(receiveMessage)
+		ws.handleIncomingMessage(GameReceiveEvent(receiveMessage.Event), data)
 
 	}
 
-	ws.connection.Close()
-
 }
 
-func (ws *Websocket) handleIncomingMessage(receiveMessage ReceiveMessage) {
+func (ws *Websocket) handleIncomingMessage(eventType GameReceiveEvent, data []byte) {
 
-	switch receiveMessage.Event {
-	case receiveEvents.StartGame:
+	switch eventType {
+	case StartGame:
 		{
-			claims, err := auth.ParseToken(receiveMessage.Token)
+			var eventPayload StartGameEvent
+
+			if err := json.Unmarshal(data, &eventPayload); err != nil {
+				fmt.Println("error parsing StartGame event")
+				return
+			}
+
+			claims, err := auth.ParseToken(eventPayload.Token)
+
+			if err != nil {
+				fmt.Println("Error parsing token")
+			}
 
 			for _, player := range repositories.Players {
 				if player.ID == claims["id"] {
 
-					player.Position.X = receiveMessage.Position.X
-					player.Position.Y = receiveMessage.Position.Y
+					player.Position.X = eventPayload.Position.X
+					player.Position.Y = eventPayload.Position.Y
 
 					playersJSON, err := json.Marshal(repositories.Players)
 
@@ -89,17 +90,50 @@ func (ws *Websocket) handleIncomingMessage(receiveMessage ReceiveMessage) {
 						fmt.Println("Error conveting players to json")
 					}
 
-					ws.connection.WriteMessage(websocket.BinaryMessage, playersJSON)
+					ws.connection.WriteMessage(websocket.TextMessage, playersJSON)
 
 					break
 				}
 			}
+		}
+	case PlayerMoved:
+		{
+			var eventPayload PlayerMovedEvent
+
+			if err := json.Unmarshal(data, &eventPayload); err != nil {
+				fmt.Println("error parsing StartGame event")
+				return
+			}
+
+			claims, err := auth.ParseToken(eventPayload.Token)
 
 			if err != nil {
 				fmt.Println("Error parsing token")
 			}
+
+			for _, player := range repositories.Players {
+				if player.ID == claims["id"] {
+
+					player.Position.X = eventPayload.Position.X
+					player.Position.Y = eventPayload.Position.Y
+
+					playersJSON, err := json.Marshal(repositories.Players)
+
+					if err != nil {
+						fmt.Println("Error conveting players to json")
+					}
+
+					ws.connection.WriteMessage(websocket.TextMessage, playersJSON)
+
+					break
+				}
+			}
 		}
 
 	}
+
+}
+
+func (ws *Websocket) handleEmitMessage(eventType GameReceiveEvent, data []byte) {
 
 }
