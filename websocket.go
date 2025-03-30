@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	gameEvents "github.com/robertvitoriano/penguin-server/enums"
 )
 
 type Websocket struct {
@@ -35,7 +36,7 @@ func (ws *Websocket) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("Connected")
+	fmt.Println("trying to connect...")
 
 	for {
 		messageType, data, err := conn.ReadMessage()
@@ -52,13 +53,12 @@ func (ws *Websocket) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Error parsing json")
 		}
 
-		if message.Content == "close" {
-			break
+		if message.Content == string(gameEvents.START_GAME) {
+			conn.WriteMessage(messageType, []byte("Hello client"))
 		}
 
 		fmt.Println(message.Content)
 
-		conn.WriteMessage(messageType, []byte("Hello client"))
 	}
 
 	conn.Close()
