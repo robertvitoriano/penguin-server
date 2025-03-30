@@ -1,15 +1,30 @@
 package repositories
 
-import "github.com/robertvitoriano/penguin-server/models"
+import (
+	"fmt"
 
-var Players = []models.Player{}
+	"github.com/robertvitoriano/penguin-server/models"
+)
 
-func GetPlayers() []models.Player {
+var Players = []*models.Player{}
+
+func GetPlayers() []*models.Player {
 	return Players
 }
 
-func CreatePlayer(newPlayer models.Player) []models.Player {
+func CreatePlayer(newPlayer *models.Player) []*models.Player {
 	Players = append(Players, newPlayer)
 
 	return Players
+}
+
+func FindPlayerByUsername(username string) (models.Player, error) {
+	for _, player := range Players {
+
+		if player.Username == username {
+			return *player, nil
+		}
+
+	}
+	return models.Player{}, fmt.Errorf("player not found")
 }

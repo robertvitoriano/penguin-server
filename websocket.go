@@ -7,7 +7,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/robertvitoriano/penguin-server/auth"
 	gameEvents "github.com/robertvitoriano/penguin-server/enums"
+	"github.com/robertvitoriano/penguin-server/models"
+	"github.com/robertvitoriano/penguin-server/repositories"
 )
 
 type Websocket struct {
@@ -15,8 +18,9 @@ type Websocket struct {
 }
 
 type Message struct {
-	Content string `json:"content"`
-	Token   string `json:token`
+	Event    string          `json:"event"`
+	Token    string          `json:"token"`
+	Position models.Position `json:"position"`
 }
 
 var upgrader = websocket.Upgrader{
@@ -54,17 +58,35 @@ func (ws *Websocket) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Error parsing json")
 		}
 
-		if message.Content == "close" {
+		if message.Event == "close" {
 			break
 		}
 
-		if message.Content == string(gameEvents.START_GAME) {
-			// claims, err := auth.ParseToken(message.Token)
+		claims, err := auth.ParseToken(message.Token)
+
+		if message.Event == string(gameEvents.START_GAME) {
+
+			for _, player := range repositories.Players {
+				if player.ID == claims["id"] {
+
+					player.Position.X = message.Position.X
+					player.Position.Y = message.Position.Y
+
+					playersJSON, err := json.Marshal(repositories.Players)
+
+					if err != nil {
+						fmt.Println("Error conveting players to json")
+					}
+
+					conn.WriteMessage(messageType, playersJSON)
+
+					break
+				}
+			}
 
 			if err != nil {
 				fmt.Println("Error parsing token")
 			}
-			conn.WriteMessage(messageType, []byte("Hello client"))
 		}
 
 	}

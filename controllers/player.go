@@ -18,6 +18,7 @@ import (
 type PlayerCreationResponse struct {
 	Player models.Player `json:"player"`
 	Token  string        `json:"token"`
+	Result string        `json:"result"`
 }
 
 func GetPlayers(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +52,23 @@ func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, web
 		return
 	}
 
+	existingUser, err := repositories.FindPlayerByUsername(newPlayer.Username)
+
+	if err == nil {
+
+		responseWriter.WriteHeader(http.StatusCreated)
+
+		response := PlayerCreationResponse{
+			Player: existingUser,
+			Result: "User already exists",
+		}
+
+		if err := json.NewEncoder(responseWriter).Encode(response); err != nil {
+			log.Println("Error encoding response:", err)
+		}
+		return
+	}
+
 	min, max := 10, 255
 	r := rand.Intn(max-min+1) + min
 	g := rand.Intn(max-min+1) + min
@@ -61,7 +79,7 @@ func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, web
 	newPlayer.Color = newColor
 	newPlayer.ID = uuid.New().String()
 
-	repositories.CreatePlayer(newPlayer)
+	repositories.CreatePlayer(&newPlayer)
 
 	if websocketConnection != nil {
 		err = websocketConnection.WriteMessage(websocket.TextMessage, []byte("User created"))
@@ -99,4 +117,5 @@ func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, web
 	if err := json.NewEncoder(responseWriter).Encode(response); err != nil {
 		log.Println("Error encoding response:", err)
 	}
+
 }
