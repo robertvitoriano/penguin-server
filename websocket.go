@@ -84,13 +84,18 @@ func (ws *Websocket) handleIncomingMessage(eventType GameReceiveEvent, data []by
 					player.Position.X = eventPayload.Position.X
 					player.Position.Y = eventPayload.Position.Y
 
-					playersJSON, err := json.Marshal(repositories.Players)
+					var emitEventPayload SetInitialPlayersPositionEvent
+
+					emitEventPayload.Event = "set_initial_players_position"
+					emitEventPayload.Players = repositories.Players
+
+					emitEventPayloadJSON, err := json.Marshal(emitEventPayload)
 
 					if err != nil {
 						fmt.Println("Error conveting players to json")
 					}
 
-					ws.connection.WriteMessage(websocket.TextMessage, playersJSON)
+					ws.connection.WriteMessage(websocket.TextMessage, emitEventPayloadJSON)
 
 					break
 				}
@@ -99,7 +104,7 @@ func (ws *Websocket) handleIncomingMessage(eventType GameReceiveEvent, data []by
 	case PlayerMoved:
 		{
 			var eventPayload PlayerMovedEvent
-
+			fmt.Println("PLAYER MOVED EVENT")
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
 				fmt.Println("error parsing StartGame event")
 				return
@@ -117,13 +122,19 @@ func (ws *Websocket) handleIncomingMessage(eventType GameReceiveEvent, data []by
 					player.Position.X = eventPayload.Position.X
 					player.Position.Y = eventPayload.Position.Y
 
-					playersJSON, err := json.Marshal(repositories.Players)
+					var emitEventPayload UpdateOtherPlayerPositionEvent
+
+					emitEventPayload.ID = player.ID
+					emitEventPayload.Position = eventPayload.Position
+					emitEventPayload.Event = "update_player_position"
+
+					emitPayLoadJSON, err := json.Marshal(emitEventPayload)
 
 					if err != nil {
 						fmt.Println("Error conveting players to json")
 					}
 
-					ws.connection.WriteMessage(websocket.TextMessage, playersJSON)
+					ws.connection.WriteMessage(websocket.TextMessage, emitPayLoadJSON)
 
 					break
 				}
@@ -131,9 +142,5 @@ func (ws *Websocket) handleIncomingMessage(eventType GameReceiveEvent, data []by
 		}
 
 	}
-
-}
-
-func (ws *Websocket) handleEmitMessage(eventType GameReceiveEvent, data []byte) {
 
 }

@@ -1,14 +1,16 @@
 package main
 
-type GameEmitEvent string
-
-const (
-	PlayerJoined GameEmitEvent = "PlayerJoined"
+import (
+	"github.com/robertvitoriano/penguin-server/models"
 )
 
-var emitEventDefinitions = map[GameEmitEvent]interface{}{
-	PlayerJoined: struct {
-		PlayerID string `json:"playerId"`
-		Username string `json:"username"`
-	}{},
+type UpdateOtherPlayerPositionEvent struct {
+	Event    string   `json:"event"`
+	ID       string   `json:"id"`
+	Position Position `json:"position"`
+}
+
+type SetInitialPlayersPositionEvent struct {
+	Event   string           `json:"event"`
+	Players []*models.Player `json:"players"`
 }
