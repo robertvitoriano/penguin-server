@@ -119,7 +119,6 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 	case PlayerMoved:
 		{
 			var eventPayload PlayerMovedEvent
-			fmt.Println("PLAYER MOVED EVENT")
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
 				fmt.Println("error parsing PlayerMoved event")
 				return
@@ -137,11 +136,14 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 					player.Position.Y = eventPayload.Position.Y
 
 					var emitEventPayload UpdateOtherPlayerPositionEvent
+
 					emitEventPayload.ID = player.ID
 					emitEventPayload.Position = eventPayload.Position
 					emitEventPayload.Event = "update_player_position"
-
+					emitEventPayload.CurrentState = eventPayload.CurrentState
+					emitEventPayload.IsFlipped = eventPayload.IsFlipped
 					emitPayLoadJSON, err := json.Marshal(emitEventPayload)
+
 					if err != nil {
 						fmt.Println("Error converting players to json")
 						return

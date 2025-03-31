@@ -18,8 +18,10 @@ type StartGameEvent struct {
 }
 
 type PlayerMovedEvent struct {
-	Token    string   `json:"token"`
-	Position Position `json:"position"`
+	IsFlipped    bool     `json:"isFlipped"`
+	CurrentState string   `json:"currentState"`
+	Token        string   `json:"token"`
+	Position     Position `json:"position"`
 }
 
 var receiveEventDefinitions = map[GameReceiveEvent]interface{}{

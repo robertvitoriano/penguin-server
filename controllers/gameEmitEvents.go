@@ -5,9 +5,11 @@ import (
 )
 
 type UpdateOtherPlayerPositionEvent struct {
-	Event    string   `json:"event"`
-	ID       string   `json:"id"`
-	Position Position `json:"position"`
+	Event        string   `json:"event"`
+	ID           string   `json:"id"`
+	Position     Position `json:"position"`
+	CurrentState string   `json:"currentState"`
+	IsFlipped    bool     `json:"isFlipped"`
 }
 
 type SetInitialPlayersPositionEvent struct {
