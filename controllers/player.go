@@ -10,7 +10,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"github.com/robertvitoriano/penguin-server/models"
 	"github.com/robertvitoriano/penguin-server/repositories"
 )
@@ -41,7 +40,7 @@ func GetPlayer(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Player not found", http.StatusNotFound)
 }
 
-func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, websocketConnection *websocket.Conn) {
+func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws *Websocket) {
 	responseWriter.Header().Set("Content-Type", "application/json")
 
 	var newPlayer models.Player
@@ -81,12 +80,7 @@ func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, web
 
 	repositories.CreatePlayer(&newPlayer)
 
-	if websocketConnection != nil {
-		err = websocketConnection.WriteMessage(websocket.TextMessage, []byte("User created"))
-		if err != nil {
-			log.Println("WebSocket write error:", err)
-		}
-	}
+	ws.Broadcast([]byte("User created"))
 
 	var (
 		secretKey   string
