@@ -6,15 +6,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"github.com/robertvitoriano/penguin-server/controllers"
 	"github.com/rs/cors"
 )
 
 func main() {
-	ws := &controllers.Websocket{
-		Connections: make(map[*websocket.Conn]bool),
-	}
+	ws := controllers.NewWebsocket()
 	router := mux.NewRouter()
 	router.HandleFunc("/players/{id}", controllers.GetPlayer).Methods("GET")
 	router.HandleFunc("/players", func(w http.ResponseWriter, r *http.Request) {

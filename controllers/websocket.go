@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
 
 	"github.com/gorilla/websocket"
 	"github.com/robertvitoriano/penguin-server/auth"
@@ -13,12 +12,20 @@ import (
 )
 
 type Websocket struct {
-	Connections map[*websocket.Conn]bool
-	mu          sync.Mutex
+	Connections      map[*websocket.Conn]bool
+	addConnection    chan *websocket.Conn
+	removeConnection chan *websocket.Conn
+	broadcast        chan broadcastMessage
 }
 
 type BaseMessage struct {
 	Event string `json:"event"`
+}
+
+type broadcastMessage struct {
+	message   []byte
+	exclude   *websocket.Conn
+	errorChan chan error
 }
 
 var upgrader = websocket.Upgrader{
@@ -57,20 +64,17 @@ func (ws *Websocket) ServeWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (ws *Websocket) AddConnection(conn *websocket.Conn) {
-	ws.mu.Lock()
-	defer ws.mu.Unlock()
-	ws.Connections[conn] = true
+	ws.addConnection <- conn
 }
 
 func (ws *Websocket) RemoveConnection(conn *websocket.Conn) {
-	ws.mu.Lock()
-	defer ws.mu.Unlock()
-	delete(ws.Connections, conn)
+
+	ws.removeConnection <- conn
 }
 
 func (ws *Websocket) Broadcast(message []byte) {
-	ws.mu.Lock()
-	defer ws.mu.Unlock()
+	// ws.mu.Lock()
+	// defer ws.mu.Unlock()
 
 	for conn := range ws.Connections {
 		if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
@@ -111,7 +115,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 						return
 					}
 
-					ws.broadcastMessage(emitEventPayloadJSON)
+					go ws.broadcastMessage(emitEventPayloadJSON)
 					break
 				}
 			}
@@ -149,7 +153,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 						return
 					}
 
-					ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
+					go ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
 					break
 				}
 			}
@@ -157,29 +161,58 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 	}
 }
 func (ws *Websocket) broadcastMessage(message []byte) {
-	ws.mu.Lock()
-	defer ws.mu.Unlock()
-
-	for conn := range ws.Connections {
-		if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
-			fmt.Println("Error broadcasting message:", err)
-			conn.Close()
-			delete(ws.Connections, conn)
-		}
+	ws.broadcast <- broadcastMessage{
+		message: message,
 	}
 }
 
 func (ws *Websocket) broadcastMessageExcept(message []byte, excludeConn *websocket.Conn) {
-	ws.mu.Lock()
-	defer ws.mu.Unlock()
 
-	for conn := range ws.Connections {
-		if conn != excludeConn {
-			if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
-				fmt.Println("Error broadcasting message:", err)
+	ws.broadcast <- broadcastMessage{
+		message: message,
+		exclude: excludeConn,
+	}
+}
+
+func (ws *Websocket) connectionManager() {
+	for {
+		select {
+		case conn := <-ws.addConnection:
+			ws.Connections[conn] = true
+
+		case conn := <-ws.removeConnection:
+			if _, ok := ws.Connections[conn]; ok {
 				conn.Close()
 				delete(ws.Connections, conn)
 			}
+
+		case msg := <-ws.broadcast:
+			var err error
+			for conn := range ws.Connections {
+				if msg.exclude != nil && conn == msg.exclude {
+					continue
+				}
+				if writeErr := conn.WriteMessage(websocket.TextMessage, msg.message); writeErr != nil {
+					log.Println("Write error:", writeErr)
+					ws.removeConnection <- conn
+					msg.errorChan <- writeErr
+				}
+			}
+			if msg.errorChan != nil {
+				msg.errorChan <- err
+			}
 		}
 	}
+}
+
+func NewWebsocket() *Websocket {
+	ws := &Websocket{
+		Connections:      make(map[*websocket.Conn]bool),
+		addConnection:    make(chan *websocket.Conn),
+		removeConnection: make(chan *websocket.Conn),
+		broadcast:        make(chan broadcastMessage),
+	}
+
+	go ws.connectionManager()
+	return ws
 }
