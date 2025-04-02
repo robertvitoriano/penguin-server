@@ -115,7 +115,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 						return
 					}
 
-					go ws.broadcastMessage(emitEventPayloadJSON)
+					ws.broadcastMessage(emitEventPayloadJSON)
 					break
 				}
 			}
@@ -153,7 +153,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 						return
 					}
 
-					go ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
+					ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
 					break
 				}
 			}
