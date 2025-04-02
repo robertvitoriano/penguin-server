@@ -105,20 +105,21 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 					player.Position.X = eventPayload.Position.X
 					player.Position.Y = eventPayload.Position.Y
 
-					var emitEventPayload SetInitialPlayersPositionEvent
-					emitEventPayload.Event = "set_initial_players_position"
-					emitEventPayload.Players = repositories.Players
-
-					emitEventPayloadJSON, err := json.Marshal(emitEventPayload)
-					if err != nil {
-						fmt.Println("Error converting players to json")
-						return
-					}
-
-					ws.broadcastMessage(emitEventPayloadJSON)
 					break
 				}
 			}
+
+			var emitEventPayload SetInitialPlayersPositionEvent
+			emitEventPayload.Event = "set_initial_players_position"
+			emitEventPayload.Players = repositories.Players
+
+			emitEventPayloadJSON, err := json.Marshal(emitEventPayload)
+			if err != nil {
+				fmt.Println("Error converting players to json")
+				return
+			}
+
+			ws.broadcastMessage(emitEventPayloadJSON)
 		}
 	case PlayerMoved:
 		{
