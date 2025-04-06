@@ -18,6 +18,21 @@ func CreatePlayer(newPlayer *models.Player) []*models.Player {
 	return Players
 }
 
+func RemoveByID(id string) *models.Player {
+	newSlice := []*models.Player{}
+	removedPlayer := models.Player{}
+
+	for _, player := range Players {
+		if player.ID == id {
+			removedPlayer = *player
+			continue
+		}
+		newSlice = append(newSlice, player)
+	}
+	Players = newSlice
+	return &removedPlayer
+}
+
 func FindPlayerByUsername(username string) (models.Player, error) {
 	for _, player := range Players {
 

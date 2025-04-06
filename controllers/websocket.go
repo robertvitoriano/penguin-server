@@ -45,11 +45,9 @@ func (ws *Websocket) ServeWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !ws.Connections[conn] {
-		// Add the new connection
 		ws.AddConnection(conn)
 	}
 
-	// Remove when done
 	defer ws.RemoveConnection(conn)
 	defer conn.Close()
 
