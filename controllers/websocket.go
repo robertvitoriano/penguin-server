@@ -102,14 +102,14 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 			var existingPlayer *models.Player
 
-			for i, player := range repositories.Players {
+			for _, player := range repositories.Players {
 				if player.ID == claims["id"] {
 
-					existingPlayer = repositories.Players[i]
+					existingPlayer = player
 
-					if repositories.Players[i].Position.X == 0 && repositories.Players[i].Position.Y == 0 {
-						repositories.Players[i].Position.X = eventPayload.Position.X
-						repositories.Players[i].Position.Y = eventPayload.Position.Y
+					if player.Position.X == 0 && player.Position.Y == 0 {
+						player.Position.X = eventPayload.Position.X
+						player.Position.Y = eventPayload.Position.Y
 					}
 
 					break
