@@ -102,32 +102,28 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 
-			playerFound := false
+			var existingPlayer *models.Player
 
-			for _, player := range repositories.Players {
+			for i, player := range repositories.Players {
 				if player.ID == claims["id"] {
-					playerFound = true
+					repositories.Players[i].Position.X = eventPayload.Position.X
+					repositories.Players[i].Position.Y = eventPayload.Position.Y
+					existingPlayer = repositories.Players[i]
+					break
 				}
 			}
 
-			if !playerFound {
+			if existingPlayer == nil {
 				newPlayer := models.Player{
 					ID:       claims["id"].(string),
 					Username: claims["username"].(string),
 					Color:    claims["color"].(string),
+					Position: models.Position{
+						X: eventPayload.Position.X,
+						Y: eventPayload.Position.Y,
+					},
 				}
-				newPlayer.Position.X = eventPayload.Position.X
-				newPlayer.Position.Y = eventPayload.Position.Y
 				repositories.CreatePlayer(&newPlayer)
-			}
-
-			for _, player := range repositories.Players {
-				if player.ID == claims["id"] {
-					player.Position.X = eventPayload.Position.X
-					player.Position.Y = eventPayload.Position.Y
-
-					break
-				}
 			}
 
 			var emitEventPayload SetInitialPlayersPositionEvent
