@@ -18,7 +18,7 @@ func CreatePlayer(newPlayer *models.Player) []*models.Player {
 	return Players
 }
 
-func RemoveByID(id string) *models.Player {
+func RemoveByID(id string) (*models.Player, error) {
 	newSlice := []*models.Player{}
 	removedPlayer := models.Player{}
 
@@ -30,7 +30,12 @@ func RemoveByID(id string) *models.Player {
 		newSlice = append(newSlice, player)
 	}
 	Players = newSlice
-	return &removedPlayer
+
+	if removedPlayer.ID == "" {
+		return nil, fmt.Errorf("PLAYER NOT FOUND")
+	}
+
+	return &removedPlayer, nil
 }
 
 func FindPlayerByUsername(username string) (models.Player, error) {
