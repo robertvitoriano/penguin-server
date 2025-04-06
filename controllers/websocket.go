@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/robertvitoriano/penguin-server/auth"
+	"github.com/robertvitoriano/penguin-server/models"
 	"github.com/robertvitoriano/penguin-server/repositories"
 )
 
@@ -43,8 +44,10 @@ func (ws *Websocket) ServeWebsocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Add the new connection
-	ws.AddConnection(conn)
+	if !ws.Connections[conn] {
+		// Add the new connection
+		ws.AddConnection(conn)
+	}
 
 	// Remove when done
 	defer ws.RemoveConnection(conn)
@@ -93,11 +96,29 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				fmt.Println("error parsing StartGame event")
 				return
 			}
-
 			claims, err := auth.ParseToken(eventPayload.Token)
 			if err != nil {
 				fmt.Println("Error parsing token")
 				return
+			}
+
+			playerFound := false
+
+			for _, player := range repositories.Players {
+				if player.ID == claims["id"] {
+					playerFound = true
+				}
+			}
+
+			if !playerFound {
+				newPlayer := models.Player{
+					ID:       claims["id"].(string),
+					Username: claims["username"].(string),
+					Color:    claims["color"].(string),
+				}
+				newPlayer.Position.X = eventPayload.Position.X
+				newPlayer.Position.Y = eventPayload.Position.Y
+				repositories.CreatePlayer(&newPlayer)
 			}
 
 			for _, player := range repositories.Players {
@@ -162,6 +183,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 	}
 }
 func (ws *Websocket) broadcastMessage(message []byte) {
+
 	ws.broadcast <- broadcastMessage{
 		message: message,
 	}

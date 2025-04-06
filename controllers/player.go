@@ -93,6 +93,7 @@ func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws 
 		jwt.MapClaims{
 			"id":       newPlayer.ID,
 			"username": newPlayer.Username,
+			"color":    newPlayer.Color,
 		})
 
 	signedToken, err = jwtToken.SignedString([]byte(secretKey))
