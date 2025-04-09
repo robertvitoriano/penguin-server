@@ -107,11 +107,6 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 					existingPlayer = player
 
-					if player.Position.X == 0 && player.Position.Y == 0 {
-						player.Position.X = eventPayload.Position.X
-						player.Position.Y = eventPayload.Position.Y
-					}
-
 					break
 				}
 			}
