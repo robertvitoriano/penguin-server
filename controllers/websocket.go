@@ -107,6 +107,13 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 					existingPlayer = player
 
+					if existingPlayer.Position == nil {
+						player.Position = &models.Position{
+							X: eventPayload.Position.X,
+							Y: eventPayload.Position.Y,
+						}
+					}
+
 					break
 				}
 			}
@@ -116,7 +123,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 					ID:       claims["id"].(string),
 					Username: claims["username"].(string),
 					Color:    claims["color"].(string),
-					Position: models.Position{
+					Position: &models.Position{
 						X: eventPayload.Position.X,
 						Y: eventPayload.Position.Y,
 					},
@@ -191,7 +198,7 @@ func (ws *Websocket) broadcastMessageExcept(message []byte, excludeConn *websock
 	}
 }
 
-func (ws *Websocket) connectionManager() {
+func (ws *Websocket) hub() {
 	for {
 		select {
 		case conn := <-ws.addConnection:
@@ -230,6 +237,6 @@ func NewWebsocket() *Websocket {
 		broadcast:        make(chan broadcastMessage),
 	}
 
-	go ws.connectionManager()
+	go ws.hub()
 	return ws
 }
