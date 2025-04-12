@@ -12,6 +12,12 @@ type UpdateOtherPlayerPositionEvent struct {
 	IsFlipped    bool     `json:"isFlipped"`
 }
 
+type MessageReceivedEvent struct {
+	Event    string `json:"event"`
+	SenderID string `json:"senderId"`
+	Message  string `json:"message"`
+}
+
 type SetInitialPlayersPositionEvent struct {
 	Event   string           `json:"event"`
 	Players []*models.Player `json:"players"`

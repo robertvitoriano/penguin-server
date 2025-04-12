@@ -5,6 +5,7 @@ type GameReceiveEvent string
 const (
 	StartGame   GameReceiveEvent = "start_game"
 	PlayerMoved GameReceiveEvent = "player_moved"
+	MessageSent GameReceiveEvent = "message_sent"
 )
 
 type Position struct {
@@ -22,6 +23,11 @@ type PlayerMovedEvent struct {
 	CurrentState string   `json:"currentState"`
 	Token        string   `json:"token"`
 	Position     Position `json:"position"`
+}
+
+type MessageSentEvent struct {
+	Token   string `json:"token"`
+	Message string `json:"message"`
 }
 
 var receiveEventDefinitions = map[GameReceiveEvent]interface{}{

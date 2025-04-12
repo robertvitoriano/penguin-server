@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
@@ -88,7 +89,7 @@ func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws 
 		signedToken string
 	)
 
-	secretKey = "hello"
+	secretKey = os.Getenv("JWT_SECRET_KEY")
 	jwtToken = jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"id":       newPlayer.ID,

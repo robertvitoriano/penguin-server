@@ -6,12 +6,18 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"github.com/robertvitoriano/penguin-server/controllers"
 	"github.com/rs/cors"
 )
 
 func main() {
 	ws := controllers.NewWebsocket()
+	err := godotenv.Load()
+
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	router := mux.NewRouter()
 	router.HandleFunc("/players/{id}", controllers.GetPlayer).Methods("GET")
 	router.HandleFunc("/players", func(w http.ResponseWriter, r *http.Request) {

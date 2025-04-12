@@ -1,13 +1,16 @@
 package auth
 
-import "github.com/dgrijalva/jwt-go"
+import (
+	"os"
 
-var secretKey = []byte("hello")
+	"github.com/dgrijalva/jwt-go"
+)
 
-// ParseToken parses and validates the JWT token and returns the claims
 func ParseToken(tokenString string) (jwt.MapClaims, error) {
+
+	var secretKey = []byte(os.Getenv("JWT_SECRET_KEY"))
+
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Validate the signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, jwt.ErrSignatureInvalid
 		}

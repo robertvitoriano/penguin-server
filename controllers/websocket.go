@@ -181,6 +181,35 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				}
 			}
 		}
+	case MessageSent:
+		{
+			var eventPayload MessageSentEvent
+			if err := json.Unmarshal(data, &eventPayload); err != nil {
+				fmt.Println("error parsing PlayerMoved event")
+				return
+			}
+
+			claims, err := auth.ParseToken(eventPayload.Token)
+			if err != nil {
+				fmt.Println("Error parsing token")
+				return
+			}
+			emitEventPayload := MessageReceivedEvent{
+				Event:    "message_received",
+				SenderID: claims["id"].(string),
+				Message:  eventPayload.Message,
+			}
+
+			emitPayLoadJSON, err := json.Marshal(emitEventPayload)
+
+			if err != nil {
+				fmt.Println("Error converting players to json")
+				return
+			}
+
+			ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
+
+		}
 	}
 }
 func (ws *Websocket) broadcastMessage(message []byte) {
