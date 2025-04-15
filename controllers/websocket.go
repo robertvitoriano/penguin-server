@@ -133,9 +133,19 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 			var emitEventPayload SetInitialPlayersPositionEvent
 			emitEventPayload.Event = "set_initial_players_position"
-			emitEventPayload.Players = repositories.Players
+
+			for _, player := range repositories.Players {
+				emitEventPayload.Players = append(emitEventPayload.Players, PlayerWithMessages{
+					ID:           player.ID,
+					Username:     player.Username,
+					Color:        player.Color,
+					Position:     Position(*player.Position),
+					ChatMessages: repositories.GetChatMessages(player.ID),
+				})
+			}
 
 			emitEventPayloadJSON, err := json.Marshal(emitEventPayload)
+
 			if err != nil {
 				fmt.Println("Error converting players to json")
 				return
@@ -199,6 +209,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				SenderID: claims["id"].(string),
 				Message:  eventPayload.Message,
 			}
+			repositories.SaveChatMessage(claims["id"].(string), eventPayload.Message)
 
 			emitPayLoadJSON, err := json.Marshal(emitEventPayload)
 

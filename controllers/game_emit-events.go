@@ -1,8 +1,6 @@
 package controllers
 
-import (
-	"github.com/robertvitoriano/penguin-server/models"
-)
+import "github.com/robertvitoriano/penguin-server/models"
 
 type UpdateOtherPlayerPositionEvent struct {
 	Event        string   `json:"event"`
@@ -18,7 +16,15 @@ type MessageReceivedEvent struct {
 	Message  string `json:"message"`
 }
 
+type PlayerWithMessages struct {
+	ID           string                `json:"id"`
+	Username     string                `json:"username"`
+	Color        string                `json:"color"`
+	Position     Position              `json:"position"`
+	ChatMessages []*models.ChatMessage `json:"chatMessages"`
+}
+
 type SetInitialPlayersPositionEvent struct {
-	Event   string           `json:"event"`
-	Players []*models.Player `json:"players"`
+	Event   string               `json:"event"`
+	Players []PlayerWithMessages `json:"players"`
 }
