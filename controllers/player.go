@@ -115,3 +115,7 @@ func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws 
 	}
 
 }
+
+func GetPlayerMessages(responseWriter http.ResponseWriter, request *http.Request, ws *Websocket) {
+
+}
