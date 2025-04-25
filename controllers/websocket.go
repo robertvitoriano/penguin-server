@@ -238,7 +238,6 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				SenderID: claims["id"].(string),
 				Chunk:    eventPayload.Chunk,
 			}
-			repositories.SaveChatMessage(claims["id"].(string), eventPayload.Message)
 
 			emitPayLoadJSON, err := json.Marshal(emitEventPayload)
 
