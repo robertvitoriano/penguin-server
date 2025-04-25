@@ -16,6 +16,12 @@ type MessageReceivedEvent struct {
 	Message  string `json:"message"`
 }
 
+type AudioChuckReceivedEvent struct {
+	Event    string  `json:"event"`
+	SenderID string  `json:"senderId"`
+	Chunk    []int64 `json:"chunk"`
+}
+
 type PlayerWithMessages struct {
 	ID           string                `json:"id"`
 	Username     string                `json:"username"`

@@ -74,8 +74,6 @@ func (ws *Websocket) RemoveConnection(conn *websocket.Conn) {
 }
 
 func (ws *Websocket) Broadcast(message []byte) {
-	// ws.mu.Lock()
-	// defer ws.mu.Unlock()
 
 	for conn := range ws.Connections {
 		if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
@@ -220,6 +218,36 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 			ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
 
+		}
+
+	case AudioChuckSent:
+		{
+			var eventPayload AudioChunkSentEvent
+			if err := json.Unmarshal(data, &eventPayload); err != nil {
+				fmt.Println("error parsing PlayerMoved event")
+				return
+			}
+
+			claims, err := auth.ParseToken(eventPayload.Token)
+			if err != nil {
+				fmt.Println("Error parsing token")
+				return
+			}
+			emitEventPayload := AudioChuckReceivedEvent{
+				Event:    "audio_chunk_received",
+				SenderID: claims["id"].(string),
+				Chunk:    eventPayload.Chunk,
+			}
+			repositories.SaveChatMessage(claims["id"].(string), eventPayload.Message)
+
+			emitPayLoadJSON, err := json.Marshal(emitEventPayload)
+
+			if err != nil {
+				fmt.Println("Error converting audio chunk message to json")
+				return
+			}
+
+			ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
 		}
 	}
 }

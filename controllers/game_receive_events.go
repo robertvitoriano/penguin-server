@@ -3,9 +3,10 @@ package controllers
 type GameReceiveEvent string
 
 const (
-	StartGame   GameReceiveEvent = "start_game"
-	PlayerMoved GameReceiveEvent = "player_moved"
-	MessageSent GameReceiveEvent = "message_sent"
+	StartGame      GameReceiveEvent = "start_game"
+	PlayerMoved    GameReceiveEvent = "player_moved"
+	MessageSent    GameReceiveEvent = "message_sent"
+	AudioChuckSent GameReceiveEvent = "audio_chunk_sent"
 )
 
 type Position struct {
@@ -28,6 +29,11 @@ type PlayerMovedEvent struct {
 type MessageSentEvent struct {
 	Token   string `json:"token"`
 	Message string `json:"message"`
+}
+type AudioChunkSentEvent struct {
+	Chunk   []int64 `json:"chunk"`
+	Message string  `json:"message"`
+	Token   string  `json:"token"`
 }
 
 var receiveEventDefinitions = map[GameReceiveEvent]interface{}{
