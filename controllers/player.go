@@ -81,7 +81,7 @@ func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws 
 
 	repositories.CreatePlayer(&newPlayer)
 
-	ws.Broadcast([]byte("User created"))
+	ws.Broadcast([]byte(`{"message":"User created"}`))
 
 	var (
 		secretKey   string
