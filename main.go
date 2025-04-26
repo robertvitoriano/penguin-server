@@ -20,6 +20,9 @@ func main() {
 	}
 
 	router := mux.NewRouter()
+	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 	router.HandleFunc("/players/{id}", controllers.GetPlayer).Methods("GET")
 	router.HandleFunc("/players", func(w http.ResponseWriter, r *http.Request) {
 		controllers.CreatePlayer(w, r, ws)
@@ -28,9 +31,8 @@ func main() {
 	router.HandleFunc("/ws", ws.ServeWebsocket).Methods("GET")
 
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{
-			"*",
-		},
+		AllowedOrigins: []string{"https://penguim-adventure.robertvitoriano.com", "http://localhost:8000"},
+
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
 		AllowCredentials: true,
