@@ -34,8 +34,7 @@ func main() {
 	c := cors.New(cors.Options{
 
 		AllowedOrigins: []string{
-			"http://localhost:8000",
-			"https://penguim-adventure.robertvitoriano.com",
+			"*",
 		},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
