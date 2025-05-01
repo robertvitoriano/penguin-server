@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -31,12 +32,12 @@ func main() {
 	router.HandleFunc("/ws", ws.ServeWebsocket).Methods("GET")
 
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"https://penguim-adventure.robertvitoriano.com", "http://localhost:8000"},
+		AllowedOrigins: []string{"https://penguim-adventure.robertvitoriano.com", "http://localhost:8000", fmt.Sprintf("http://%v:8000", os.Getenv("COMPUTER_IP"))},
 
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
 		AllowCredentials: true,
-		Debug:            false,
+		Debug:            true,
 	})
 
 	handler := c.Handler(router)
