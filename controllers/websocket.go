@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/robertvitoriano/penguin-server/auth"
 	"github.com/robertvitoriano/penguin-server/models"
+	"github.com/robertvitoriano/penguin-server/payloads"
 	"github.com/robertvitoriano/penguin-server/repositories"
 )
 
@@ -87,7 +88,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 	switch eventType {
 	case StartGame:
 		{
-			var eventPayload StartGameEvent
+			var eventPayload payloads.StartGameEvent
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
 				fmt.Println("error parsing StartGame event")
 				return
@@ -129,15 +130,15 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				repositories.CreatePlayer(&newPlayer)
 			}
 
-			var emitEventPayload SetInitialPlayersPositionEvent
+			var emitEventPayload payloads.SetInitialPlayersPositionEvent
 			emitEventPayload.Event = "set_initial_players_position"
 
 			for _, player := range repositories.Players {
-				emitEventPayload.Players = append(emitEventPayload.Players, PlayerWithMessages{
+				emitEventPayload.Players = append(emitEventPayload.Players, payloads.PlayerWithMessages{
 					ID:           player.ID,
 					Username:     player.Username,
 					Color:        player.Color,
-					Position:     Position(*player.Position),
+					Position:     payloads.Position(*player.Position),
 					ChatMessages: repositories.GetChatMessages(player.ID),
 				})
 			}
@@ -153,7 +154,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 		}
 	case PlayerMoved:
 		{
-			var eventPayload PlayerMovedEvent
+			var eventPayload payloads.PlayerMovedEvent
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
 				fmt.Println("error parsing PlayerMoved event")
 				return
@@ -170,7 +171,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 					player.Position.X = eventPayload.Position.X
 					player.Position.Y = eventPayload.Position.Y
 
-					var emitEventPayload UpdateOtherPlayerPositionEvent
+					var emitEventPayload payloads.UpdateOtherPlayerPositionEvent
 
 					emitEventPayload.ID = player.ID
 					emitEventPayload.Position = eventPayload.Position
@@ -191,7 +192,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 		}
 	case MessageSent:
 		{
-			var eventPayload MessageSentEvent
+			var eventPayload payloads.MessageSentEvent
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
 				fmt.Println("error parsing PlayerMoved event")
 				return
@@ -202,7 +203,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				fmt.Println("Error parsing token")
 				return
 			}
-			emitEventPayload := MessageReceivedEvent{
+			emitEventPayload := payloads.MessageReceivedEvent{
 				Event:    "message_received",
 				SenderID: claims["id"].(string),
 				Message:  eventPayload.Message,
@@ -222,7 +223,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 	case AudioChuckSent:
 		{
-			var eventPayload AudioChunkSentEvent
+			var eventPayload payloads.AudioChunkSentEvent
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
 				fmt.Println("error parsing PlayerMoved event")
 				return
@@ -233,7 +234,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				fmt.Println("Error parsing token")
 				return
 			}
-			emitEventPayload := AudioChuckReceivedEvent{
+			emitEventPayload := payloads.AudioChuckReceivedEvent{
 				Event:    "audio_chunk_received",
 				SenderID: claims["id"].(string),
 				Chunk:    eventPayload.Chunk,
@@ -248,7 +249,89 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 			ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
 		}
+	case WebRTCOfferSent:
+		{
+			var eventPayload payloads.WebRTCOfferSentEvent
+			if err := json.Unmarshal(data, &eventPayload); err != nil {
+				fmt.Println("error parsing PlayerMoved event")
+				return
+			}
+
+			_, err := auth.ParseToken(eventPayload.Token)
+			if err != nil {
+				fmt.Println("Error parsing token")
+				return
+			}
+			emitEventPayload := payloads.WebRTCOfferReceivedEvent{
+				Event: "webrtc_offer_received",
+				Offer: eventPayload.Offer,
+			}
+
+			emitPayLoadJSON, err := json.Marshal(emitEventPayload)
+
+			if err != nil {
+				fmt.Println("Error converting audio chunk message to json")
+				return
+			}
+
+			ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
+		}
+	case WebRTCCandidateSent:
+		{
+			var eventPayload payloads.WebRTCCandidateSentEvent
+			if err := json.Unmarshal(data, &eventPayload); err != nil {
+				fmt.Println("error parsing PlayerMoved event")
+				return
+			}
+
+			_, err := auth.ParseToken(eventPayload.Token)
+			if err != nil {
+				fmt.Println("Error parsing token")
+				return
+			}
+			emitEventPayload := payloads.WebrtcCandidateReceidEvent{
+				Event:     "webrtc_candidate_received",
+				Candidate: eventPayload.Candidate,
+			}
+
+			emitPayLoadJSON, err := json.Marshal(emitEventPayload)
+
+			if err != nil {
+				fmt.Println("Error converting audio chunk message to json")
+				return
+			}
+
+			ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
+		}
+	case WebRTCAnswerSent:
+		{
+			var eventPayload payloads.WebRTCAnswerSentEvent
+			if err := json.Unmarshal(data, &eventPayload); err != nil {
+				fmt.Println("error parsing PlayerMoved event")
+				return
+			}
+
+			_, err := auth.ParseToken(eventPayload.Token)
+			if err != nil {
+				fmt.Println("Error parsing token")
+				return
+			}
+			emitEventPayload := payloads.WebRTCAnswerReceivedEvent{
+				Event:  "webrtc_answer_received",
+				Answer: eventPayload.Answer,
+			}
+
+			emitPayLoadJSON, err := json.Marshal(emitEventPayload)
+
+			if err != nil {
+				fmt.Println("Error converting audio chunk message to json")
+				return
+			}
+
+			ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
+		}
 	}
+
 }
 func (ws *Websocket) broadcastMessage(message []byte) {
 
