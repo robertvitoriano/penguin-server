@@ -109,8 +109,8 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 					if existingPlayer.Position == nil {
 						player.Position = &models.Position{
-							X: eventPayload.Position.X,
-							Y: eventPayload.Position.Y,
+							X: &eventPayload.Position.X,
+							Y: &eventPayload.Position.Y,
 						}
 					}
 
@@ -124,8 +124,8 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 					Username: claims["username"].(string),
 					Color:    claims["color"].(string),
 					Position: &models.Position{
-						X: eventPayload.Position.X,
-						Y: eventPayload.Position.Y,
+						X: &eventPayload.Position.X,
+						Y: &eventPayload.Position.Y,
 					},
 				}
 				repositories.CreatePlayer(&newPlayer)
@@ -136,10 +136,13 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 			for _, player := range repositories.Players {
 				emitEventPayload.Players = append(emitEventPayload.Players, payloads.PlayerWithMessages{
-					ID:           player.ID,
-					Username:     player.Username,
-					Color:        player.Color,
-					Position:     payloads.Position(*player.Position),
+					ID:       player.ID,
+					Username: player.Username,
+					Color:    player.Color,
+					Position: payloads.Position{
+						X: *player.Position.X,
+						Y: *player.Position.Y,
+					},
 					ChatMessages: repositories.GetChatMessages(player.ID),
 				})
 			}
@@ -169,8 +172,8 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 			for _, player := range repositories.Players {
 				if player.ID == claims["id"] {
-					player.Position.X = eventPayload.Position.X
-					player.Position.Y = eventPayload.Position.Y
+					player.Position.X = &eventPayload.Position.X
+					player.Position.Y = &eventPayload.Position.Y
 
 					var emitEventPayload payloads.UpdateOtherPlayerPositionEvent
 

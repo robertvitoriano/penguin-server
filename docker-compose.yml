@@ -1,0 +1,18 @@
+version: "3.1"
+
+services:
+  penguin_database_service:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: penguim_db
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_USER: penguin_user
+      MYSQL_PASSWORD: penguin_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

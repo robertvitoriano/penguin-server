@@ -9,12 +9,21 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/robertvitoriano/penguin-server/internal/controllers"
+	"github.com/robertvitoriano/penguin-server/internal/database"
 	"github.com/rs/cors"
+	"gorm.io/gorm"
 )
 
 func main() {
 	ws := controllers.NewWebsocket()
 	err := godotenv.Load()
+
+	db := database.NewDb()
+
+	db.Dsn = "penguin_user:penguin_password@tcp(localhost:3306)/penguim_db?charset=utf8mb4&parseTime=True&loc=Local"
+	db.Db = &gorm.DB{}
+	db.DbType = "mysql"
+	db.Connect()
 
 	if err != nil {
 		log.Fatal("Error loading .env file")
