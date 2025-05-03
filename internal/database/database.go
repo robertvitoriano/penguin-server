@@ -28,7 +28,6 @@ func (d *Database) Connect() (*gorm.DB, error) {
 
 	d.Db.Debug()
 	d.Db.AutoMigrate(&models.Player{}, &models.Position{})
-
 	return d.Db, nil
 
 }

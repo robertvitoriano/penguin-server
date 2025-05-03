@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"encoding/json"
@@ -12,7 +12,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/robertvitoriano/penguin-server/internal/models"
-	"github.com/robertvitoriano/penguin-server/internal/repositories"
+	"github.com/robertvitoriano/penguin-server/internal/repositories/mysqlrepositories"
+	"github.com/robertvitoriano/penguin-server/internal/repositories/redisrepositories"
+	"gorm.io/gorm"
 )
 
 type PlayerCreationResponse struct {
@@ -22,13 +24,13 @@ type PlayerCreationResponse struct {
 }
 
 func GetPlayers(w http.ResponseWriter, r *http.Request) {
-	players := repositories.GetPlayers()
+	players := redisrepositories.GetPlayers()
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(players)
 }
 
 func GetPlayer(w http.ResponseWriter, r *http.Request) {
-	Players := repositories.GetPlayers()
+	Players := redisrepositories.GetPlayers()
 
 	params := mux.Vars(r)
 	for _, player := range Players {
@@ -41,7 +43,7 @@ func GetPlayer(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Player not found", http.StatusNotFound)
 }
 
-func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws *Websocket) {
+func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws *Websocket, db *gorm.DB) {
 	responseWriter.Header().Set("Content-Type", "application/json")
 
 	var newPlayer models.Player
@@ -52,7 +54,7 @@ func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws 
 		return
 	}
 
-	existingUser, err := repositories.FindPlayerByUsername(newPlayer.Username)
+	existingUser, err := redisrepositories.FindPlayerByUsername(newPlayer.Username)
 
 	if err == nil {
 
@@ -79,8 +81,9 @@ func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws 
 	newPlayer.Color = newColor
 	newPlayer.ID = uuid.New().String()
 
-	repositories.CreatePlayer(&newPlayer)
-
+	redisrepositories.CreatePlayer(&newPlayer)
+	playerPersistencyRepository := mysqlrepositories.NewPlayerRepository(db)
+	playerPersistencyRepository.CreatePlayer(&newPlayer)
 	ws.Broadcast([]byte(`{"message":"User created"}`))
 
 	var (
