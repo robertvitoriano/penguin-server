@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/robertvitoriano/penguin-server/utils"
+	"github.com/robertvitoriano/penguin-server/internal/utils"
 )
 
 func AuthMiddleware(next http.Handler) http.Handler {

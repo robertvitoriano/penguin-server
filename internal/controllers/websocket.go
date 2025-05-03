@@ -7,10 +7,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/robertvitoriano/penguin-server/auth"
-	"github.com/robertvitoriano/penguin-server/models"
-	"github.com/robertvitoriano/penguin-server/payloads"
-	"github.com/robertvitoriano/penguin-server/repositories"
+	"github.com/robertvitoriano/penguin-server/internal/auth"
+	"github.com/robertvitoriano/penguin-server/internal/events"
+	"github.com/robertvitoriano/penguin-server/internal/models"
+	"github.com/robertvitoriano/penguin-server/internal/payloads"
+	"github.com/robertvitoriano/penguin-server/internal/repositories"
 )
 
 type Websocket struct {
@@ -62,7 +63,7 @@ func (ws *Websocket) ServeWebsocket(w http.ResponseWriter, r *http.Request) {
 		var message BaseMessage
 		json.Unmarshal(data, &message)
 
-		ws.handleIncomingMessage(conn, GameReceiveEvent(message.Event), data)
+		ws.handleIncomingMessage(conn, events.GameReceiveEvent(message.Event), data)
 	}
 }
 func (ws *Websocket) AddConnection(conn *websocket.Conn) {
@@ -84,9 +85,9 @@ func (ws *Websocket) Broadcast(message []byte) {
 		}
 	}
 }
-func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventType GameReceiveEvent, data []byte) {
+func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventType events.GameReceiveEvent, data []byte) {
 	switch eventType {
-	case StartGame:
+	case events.StartGame:
 		{
 			var eventPayload payloads.StartGameEvent
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
@@ -131,7 +132,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 			}
 
 			var emitEventPayload payloads.SetInitialPlayersPositionEvent
-			emitEventPayload.Event = "set_initial_players_position"
+			emitEventPayload.Event = events.SetInitialPlayersPosition
 
 			for _, player := range repositories.Players {
 				emitEventPayload.Players = append(emitEventPayload.Players, payloads.PlayerWithMessages{
@@ -152,7 +153,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 			ws.broadcastMessage(emitEventPayloadJSON)
 		}
-	case PlayerMoved:
+	case events.PlayerMoved:
 		{
 			var eventPayload payloads.PlayerMovedEvent
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
@@ -175,7 +176,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 					emitEventPayload.ID = player.ID
 					emitEventPayload.Position = eventPayload.Position
-					emitEventPayload.Event = "update_player_position"
+					emitEventPayload.Event = string(events.UpdatePlayerPosition)
 					emitEventPayload.CurrentState = eventPayload.CurrentState
 					emitEventPayload.IsFlipped = eventPayload.IsFlipped
 					emitPayLoadJSON, err := json.Marshal(emitEventPayload)
@@ -190,7 +191,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				}
 			}
 		}
-	case MessageSent:
+	case events.MessageSent:
 		{
 			var eventPayload payloads.MessageSentEvent
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
@@ -204,7 +205,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 			emitEventPayload := payloads.MessageReceivedEvent{
-				Event:    "message_received",
+				Event:    string(events.MessageReceived),
 				SenderID: claims["id"].(string),
 				Message:  eventPayload.Message,
 			}
@@ -221,7 +222,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 		}
 
-	case AudioChuckSent:
+	case events.AudioChuckSent:
 		{
 			var eventPayload payloads.AudioChunkSentEvent
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
@@ -235,7 +236,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 			emitEventPayload := payloads.AudioChuckReceivedEvent{
-				Event:    "audio_chunk_received",
+				Event:    string(events.AudioChunkReceived),
 				SenderID: claims["id"].(string),
 				Chunk:    eventPayload.Chunk,
 			}
@@ -249,7 +250,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 			ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
 		}
-	case WebRTCOfferSent:
+	case events.WebRTCOfferSent:
 		{
 			var eventPayload payloads.WebRTCOfferSentEvent
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
@@ -263,7 +264,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 			emitEventPayload := payloads.WebRTCOfferReceivedEvent{
-				Event: "webrtc_offer_received",
+				Event: string(events.WebRTCOfferReceived),
 				Offer: eventPayload.Offer,
 			}
 
@@ -276,7 +277,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 			ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
 		}
-	case WebRTCCandidateSent:
+	case events.WebRTCCandidateSent:
 		{
 			var eventPayload payloads.WebRTCCandidateSentEvent
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
@@ -290,7 +291,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 			emitEventPayload := payloads.WebrtcCandidateReceidEvent{
-				Event:     "webrtc_candidate_received",
+				Event:     string(events.WebRTCCandidateReceived),
 				Candidate: eventPayload.Candidate,
 			}
 
@@ -303,7 +304,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 			ws.broadcastMessageExcept(emitPayLoadJSON, currentConn)
 		}
-	case WebRTCAnswerSent:
+	case events.WebRTCAnswerSent:
 		{
 			var eventPayload payloads.WebRTCAnswerSentEvent
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
@@ -317,7 +318,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 			emitEventPayload := payloads.WebRTCAnswerReceivedEvent{
-				Event:  "webrtc_answer_received",
+				Event:  string(events.WebRTCAnswerReceived),
 				Answer: eventPayload.Answer,
 			}
 

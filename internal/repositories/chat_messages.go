@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/robertvitoriano/penguin-server/models"
+	"github.com/robertvitoriano/penguin-server/internal/models"
 )
 
 var ChatMessagesByID = make(map[string][]*models.ChatMessage)

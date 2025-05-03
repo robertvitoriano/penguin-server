@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"github.com/robertvitoriano/penguin-server/controllers"
+	"github.com/robertvitoriano/penguin-server/internal/controllers"
 	"github.com/rs/cors"
 )
 

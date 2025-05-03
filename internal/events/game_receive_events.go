@@ -1,4 +1,4 @@
-package controllers
+package events
 
 type GameReceiveEvent string
 

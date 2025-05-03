@@ -3,7 +3,7 @@ package repositories
 import (
 	"fmt"
 
-	"github.com/robertvitoriano/penguin-server/models"
+	"github.com/robertvitoriano/penguin-server/internal/models"
 )
 
 var Players = []*models.Player{}

@@ -1,7 +1,8 @@
 package payloads
 
 import (
-	"github.com/robertvitoriano/penguin-server/models"
+	"github.com/robertvitoriano/penguin-server/internal/events"
+	"github.com/robertvitoriano/penguin-server/internal/models"
 )
 
 type UpdateOtherPlayerPositionEvent struct {
@@ -33,7 +34,7 @@ type PlayerWithMessages struct {
 }
 
 type SetInitialPlayersPositionEvent struct {
-	Event   string               `json:"event"`
+	Event   events.GameEmitEvent `json:"event"`
 	Players []PlayerWithMessages `json:"players"`
 }
 

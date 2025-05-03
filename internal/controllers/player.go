@@ -11,8 +11,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/robertvitoriano/penguin-server/models"
-	"github.com/robertvitoriano/penguin-server/repositories"
+	"github.com/robertvitoriano/penguin-server/internal/models"
+	"github.com/robertvitoriano/penguin-server/internal/repositories"
 )
 
 type PlayerCreationResponse struct {
