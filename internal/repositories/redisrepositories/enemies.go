@@ -23,7 +23,7 @@ func KillEnemy(id string) (*models.Enemy, error) {
 	removedEnemy := models.Enemy{}
 
 	for _, enemy := range Enemies {
-		if enemy.ID == id {
+		if enemy.ID == nil {
 			removedEnemy = *enemy
 			continue
 		}
@@ -31,7 +31,7 @@ func KillEnemy(id string) (*models.Enemy, error) {
 	}
 	Enemies = newSlice
 
-	if removedEnemy.ID == "" {
+	if removedEnemy.ID == nil {
 		return nil, fmt.Errorf("PLAYER NOT FOUND")
 	}
 

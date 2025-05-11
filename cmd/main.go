@@ -38,6 +38,7 @@ func main() {
 		handlers.CreatePlayer(w, r, ws, db.Db)
 	}).Methods("POST")
 	router.HandleFunc("/players", handlers.GetPlayers).Methods("GET")
+	router.HandleFunc("/load-level", handlers.LoadLevel).Methods("POST")
 	router.HandleFunc("/ws", ws.ServeWebsocket).Methods("GET")
 
 	c := cors.New(cors.Options{

@@ -1,8 +1,9 @@
 package models
 
 type Enemy struct {
-	ID       string    `json:"id"`
-	Username string    `json:"username"`
-	Color    string    `json:"color"`
-	Position *Position `json:"position"`
+	ID       *int      `json:"id"`
+	Name     string    `json:"name"`
+	Position *Position `json:"position" gorm:"embedded"`
+	Killed   bool      `json:"killed"`
+	Image    *string   `json:"image"`
 }
