@@ -67,8 +67,6 @@ func LoadLevel(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 			responseEnemiesChan <- enemy
 
-			fmt.Printf("Enemy %v added!\n", *enemy.ID)
-
 		}(enemy)
 	}
 
@@ -100,7 +98,6 @@ func LoadLevel(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 			responseItemsChan <- item
 
-			fmt.Printf("Item %v created!\n", *item.ID)
 		}(item)
 
 	}

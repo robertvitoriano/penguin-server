@@ -89,6 +89,7 @@ func NewTileMap(path string) *TileMap {
 						}
 						tileMap.Items = append(tileMap.Items, models.Item{
 							Type: item.Properties[*propertyIndex].Value,
+							Name: item.Name,
 							ID:   &id,
 							Position: &models.Position{
 								X: &item.X,
