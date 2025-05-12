@@ -38,8 +38,8 @@ func LoadLevel(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 
 	mapEntitiesWaitGroup.Add(len(tileMap.Enemies) + len(tileMap.Items))
 
-	responseItemsChan := make(chan models.Item, len(tileMap.Items))
-	responseEnemiesChan := make(chan models.Enemy, len(tileMap.Enemies))
+	responseItemsChan := make(chan models.Item)
+	responseEnemiesChan := make(chan models.Enemy)
 
 	for _, enemy := range tileMap.Enemies {
 		go func(enemy models.Enemy) {
@@ -111,13 +111,25 @@ func LoadLevel(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	var responseItems []models.Item
 	var responseEnemies []models.Enemy
 
-	for item := range responseItemsChan {
-		responseItems = append(responseItems, item)
-	}
+	var responseWaitGroup sync.WaitGroup
 
-	for enemy := range responseEnemiesChan {
-		responseEnemies = append(responseEnemies, enemy)
-	}
+	responseWaitGroup.Add(2)
+
+	go func() {
+		defer responseWaitGroup.Done()
+		for item := range responseItemsChan {
+			responseItems = append(responseItems, item)
+		}
+	}()
+
+	go func() {
+		defer responseWaitGroup.Done()
+		for enemy := range responseEnemiesChan {
+			responseEnemies = append(responseEnemies, enemy)
+		}
+	}()
+
+	responseWaitGroup.Wait()
 
 	jsonResponse, err := json.Marshal(LoadLevelResponse{
 		Enemies: responseEnemies,
