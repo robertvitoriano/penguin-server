@@ -62,6 +62,10 @@ func NewTileMap(path string) *TileMap {
 								X: &enemy.X,
 								Y: &enemy.Y,
 							},
+							Size: &models.Size{
+								Height: &enemy.Height,
+								Width:  &enemy.Width,
+							},
 						})
 					}
 				}
@@ -94,6 +98,10 @@ func NewTileMap(path string) *TileMap {
 							Position: &models.Position{
 								X: &item.X,
 								Y: &item.Y,
+							},
+							Size: &models.Size{
+								Height: &item.Height,
+								Width:  &item.Width,
 							},
 						})
 					}

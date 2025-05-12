@@ -7,4 +7,5 @@ type Player struct {
 	Position *Position `json:"position" gorm:"embedded"`
 	Score    *int      `json:"score"`
 	Image    *string   `json:"image"`
+	Size     *Size     `json:"size" gorm:"embedded"`
 }

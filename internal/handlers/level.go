@@ -14,8 +14,8 @@ import (
 )
 
 type LoadLevelResponse struct {
-	Enemies []models.Enemy
-	Items   []models.Item
+	Enemies []models.Enemy `json:"enemies"`
+	Items   []models.Item  `json:"items"`
 }
 
 func LoadLevel(w http.ResponseWriter, r *http.Request, db *gorm.DB) {

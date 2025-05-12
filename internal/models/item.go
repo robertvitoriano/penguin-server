@@ -7,4 +7,5 @@ type Item struct {
 	Type        string    `json:"type"`
 	CollectedBy *int      `json:"collectedBy"`
 	Image       *string   `json:"image"`
+	Size        *Size     `json:"size" gorm:"embedded"`
 }

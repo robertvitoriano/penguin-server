@@ -5,5 +5,5 @@ type Enemy struct {
 	Name     string    `json:"name"`
 	Position *Position `json:"position" gorm:"embedded"`
 	Killed   bool      `json:"killed"`
-	Image    *string   `json:"image"`
+	Size     *Size     `json:"size" gorm:"embedded"`
 }
