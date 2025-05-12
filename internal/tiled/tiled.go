@@ -2,7 +2,6 @@ package tiled
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -72,27 +71,25 @@ func NewTileMap(path string) *TileMap {
 			{
 				for _, item := range layer.Objects {
 
-					var idPropertyIndex *int
-					var typePropertyIndex *int
+					var propertyIndex *int
 
 					for index, property := range item.Properties {
 						if property.Name == "id" {
-							idPropertyIndex = &index
+							propertyIndex = &index
 						}
 						if property.Name == "type" {
-							typePropertyIndex = &index
+							propertyIndex = &index
 						}
 					}
-
-					if idPropertyIndex != nil && typePropertyIndex != nil {
-						id, err := strconv.Atoi(item.Properties[*idPropertyIndex].Value)
+					if propertyIndex != nil {
+						id, err := strconv.Atoi(item.Properties[*propertyIndex].Value)
 
 						if err != nil {
 							log.Fatalf("Failed to convert id to int: %v", err)
 						}
 						tileMap.Items = append(tileMap.Items, models.Item{
-							Type: item.Properties[*idPropertyIndex].Value,
-							ID:   id,
+							Type: item.Properties[*propertyIndex].Value,
+							ID:   &id,
 							Position: &models.Position{
 								X: &item.X,
 								Y: &item.Y,
@@ -104,7 +101,6 @@ func NewTileMap(path string) *TileMap {
 		}
 
 	}
-	fmt.Println(tileMap)
 	return tileMap
 }
 

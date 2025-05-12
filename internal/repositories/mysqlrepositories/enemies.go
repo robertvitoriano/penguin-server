@@ -8,6 +8,10 @@ import (
 type EnemiesRepository struct {
 	Db *gorm.DB
 }
+type EnemyQuery struct {
+	ID   int
+	Name string
+}
 
 func NewEnemiesRepository(db *gorm.DB) *EnemiesRepository {
 	return &EnemiesRepository{
@@ -29,5 +33,21 @@ func (r *EnemiesRepository) GetEnemies() ([]models.Enemy, error) {
 	}
 
 	return enemies, nil
+
+}
+
+func (r *EnemiesRepository) FindEnemy(criteria EnemyQuery) (*models.Enemy, error) {
+	var enemy *models.Enemy
+
+	err := r.Db.Where(criteria).First(&enemy).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return enemy, nil
 
 }
