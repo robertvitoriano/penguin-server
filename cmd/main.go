@@ -8,27 +8,39 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"github.com/robertvitoriano/penguin-server/internal/controllers"
+	"github.com/robertvitoriano/penguin-server/internal/database"
+	"github.com/robertvitoriano/penguin-server/internal/handlers"
 	"github.com/rs/cors"
+	"gorm.io/gorm"
 )
 
 func main() {
-	ws := controllers.NewWebsocket()
+	ws := handlers.NewWebsocket()
 	err := godotenv.Load()
 
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
+	db := database.NewDb()
+
+	db.Dsn = fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), os.Getenv("MYSQL_HOST"), os.Getenv("MYSQL_PORT"), os.Getenv("MYSQL_DATABASE"))
+	db.Db = &gorm.DB{}
+	db.DbType = "mysql"
+	db.Connect()
+
 	router := mux.NewRouter()
 	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	router.HandleFunc("/players/{id}", controllers.GetPlayer).Methods("GET")
+	router.HandleFunc("/players/{id}", handlers.GetPlayer).Methods("GET")
 	router.HandleFunc("/players", func(w http.ResponseWriter, r *http.Request) {
-		controllers.CreatePlayer(w, r, ws)
+		handlers.CreatePlayer(w, r, ws, db.Db)
 	}).Methods("POST")
-	router.HandleFunc("/players", controllers.GetPlayers).Methods("GET")
+	router.HandleFunc("/players", handlers.GetPlayers).Methods("GET")
+	router.HandleFunc("/load-level", func(w http.ResponseWriter, r *http.Request) {
+		handlers.LoadLevel(w, r, db.Db)
+	}).Methods("POST")
 	router.HandleFunc("/ws", ws.ServeWebsocket).Methods("GET")
 
 	c := cors.New(cors.Options{

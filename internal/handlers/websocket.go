@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 	"github.com/robertvitoriano/penguin-server/internal/events"
 	"github.com/robertvitoriano/penguin-server/internal/models"
 	"github.com/robertvitoriano/penguin-server/internal/payloads"
-	"github.com/robertvitoriano/penguin-server/internal/repositories"
+	"github.com/robertvitoriano/penguin-server/internal/repositories/redisrepositories"
 )
 
 type Websocket struct {
@@ -102,15 +102,15 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 			var existingPlayer *models.Player
 
-			for _, player := range repositories.Players {
+			for _, player := range redisrepositories.Players {
 				if player.ID == claims["id"] {
 
 					existingPlayer = player
 
 					if existingPlayer.Position == nil {
 						player.Position = &models.Position{
-							X: eventPayload.Position.X,
-							Y: eventPayload.Position.Y,
+							X: &eventPayload.Position.X,
+							Y: &eventPayload.Position.Y,
 						}
 					}
 
@@ -124,23 +124,26 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 					Username: claims["username"].(string),
 					Color:    claims["color"].(string),
 					Position: &models.Position{
-						X: eventPayload.Position.X,
-						Y: eventPayload.Position.Y,
+						X: &eventPayload.Position.X,
+						Y: &eventPayload.Position.Y,
 					},
 				}
-				repositories.CreatePlayer(&newPlayer)
+				redisrepositories.CreatePlayer(&newPlayer)
 			}
 
 			var emitEventPayload payloads.SetInitialPlayersPositionEvent
 			emitEventPayload.Event = events.SetInitialPlayersPosition
 
-			for _, player := range repositories.Players {
+			for _, player := range redisrepositories.Players {
 				emitEventPayload.Players = append(emitEventPayload.Players, payloads.PlayerWithMessages{
-					ID:           player.ID,
-					Username:     player.Username,
-					Color:        player.Color,
-					Position:     payloads.Position(*player.Position),
-					ChatMessages: repositories.GetChatMessages(player.ID),
+					ID:       player.ID,
+					Username: player.Username,
+					Color:    player.Color,
+					Position: payloads.Position{
+						X: *player.Position.X,
+						Y: *player.Position.Y,
+					},
+					ChatMessages: redisrepositories.GetChatMessages(player.ID),
 				})
 			}
 
@@ -167,10 +170,10 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 
-			for _, player := range repositories.Players {
+			for _, player := range redisrepositories.Players {
 				if player.ID == claims["id"] {
-					player.Position.X = eventPayload.Position.X
-					player.Position.Y = eventPayload.Position.Y
+					player.Position.X = &eventPayload.Position.X
+					player.Position.Y = &eventPayload.Position.Y
 
 					var emitEventPayload payloads.UpdateOtherPlayerPositionEvent
 
@@ -209,7 +212,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				SenderID: claims["id"].(string),
 				Message:  eventPayload.Message,
 			}
-			repositories.SaveChatMessage(claims["id"].(string), eventPayload.Message)
+			redisrepositories.SaveChatMessage(claims["id"].(string), eventPayload.Message)
 
 			emitPayLoadJSON, err := json.Marshal(emitEventPayload)
 
