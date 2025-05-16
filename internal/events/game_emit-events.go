@@ -10,4 +10,5 @@ const (
 	WebRTCOfferReceived       GameEmitEvent = "webrtc_offer_received"
 	WebRTCCandidateReceived   GameEmitEvent = "webrtc_candidate_received"
 	WebRTCAnswerReceived      GameEmitEvent = "webrtc_answer_received"
+	PlayerNotFound            GameEmitEvent = "player_not_found"
 )

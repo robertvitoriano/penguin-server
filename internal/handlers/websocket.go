@@ -119,16 +119,19 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 			}
 
 			if existingPlayer == nil {
-				newPlayer := models.Player{
-					ID:       claims["id"].(string),
-					Username: claims["username"].(string),
-					Color:    claims["color"].(string),
-					Position: &models.Position{
-						X: &eventPayload.Position.X,
-						Y: &eventPayload.Position.Y,
-					},
+				playerNotFoundPayload := struct {
+					Event events.GameEmitEvent `json:"event"`
+				}{
+					Event: events.PlayerNotFound,
 				}
-				redisrepositories.CreatePlayer(&newPlayer)
+
+				playerNotFoundPayloadJSON, err := json.Marshal(playerNotFoundPayload)
+				if err != nil {
+					fmt.Println("Error converting player not found payload to JSON:", err)
+					return
+				}
+
+				ws.broadcastMessage(playerNotFoundPayloadJSON)
 			}
 
 			var emitEventPayload payloads.SetInitialPlayersPositionEvent
