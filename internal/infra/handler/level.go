@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"encoding/json"
@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/mysql"
 	"github.com/robertvitoriano/penguin-server/internal/models"
-	"github.com/robertvitoriano/penguin-server/internal/repositories/mysql"
 	"github.com/robertvitoriano/penguin-server/internal/tiled"
 	"gorm.io/gorm"
 )

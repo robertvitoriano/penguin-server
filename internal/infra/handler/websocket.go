@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"encoding/json"
@@ -7,11 +7,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/robertvitoriano/penguin-server/internal/auth"
 	"github.com/robertvitoriano/penguin-server/internal/events"
+	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/redis"
 	"github.com/robertvitoriano/penguin-server/internal/models"
 	"github.com/robertvitoriano/penguin-server/internal/payloads"
-	"github.com/robertvitoriano/penguin-server/internal/repositories/redis"
+	"github.com/robertvitoriano/penguin-server/internal/utils"
 )
 
 type Websocket struct {
@@ -106,7 +106,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				fmt.Println("error parsing StartGame event")
 				return
 			}
-			claims, err := auth.ParseToken(eventPayload.Token)
+			claims, err := utils.ParseToken(eventPayload.Token)
 			if err != nil {
 				fmt.Println("Error parsing token")
 				return
@@ -179,7 +179,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 
-			claims, err := auth.ParseToken(eventPayload.Token)
+			claims, err := utils.ParseToken(eventPayload.Token)
 			if err != nil {
 				fmt.Println("Error parsing token")
 				return
@@ -217,7 +217,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 
-			claims, err := auth.ParseToken(eventPayload.Token)
+			claims, err := utils.ParseToken(eventPayload.Token)
 			if err != nil {
 				fmt.Println("Error parsing token")
 				return
@@ -248,7 +248,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 
-			claims, err := auth.ParseToken(eventPayload.Token)
+			claims, err := utils.ParseToken(eventPayload.Token)
 			if err != nil {
 				fmt.Println("Error parsing token")
 				return
@@ -276,7 +276,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 
-			_, err := auth.ParseToken(eventPayload.Token)
+			_, err := utils.ParseToken(eventPayload.Token)
 			if err != nil {
 				fmt.Println("Error parsing token")
 				return
@@ -303,7 +303,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 
-			_, err := auth.ParseToken(eventPayload.Token)
+			_, err := utils.ParseToken(eventPayload.Token)
 			if err != nil {
 				fmt.Println("Error parsing token")
 				return
@@ -330,7 +330,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 
-			_, err := auth.ParseToken(eventPayload.Token)
+			_, err := utils.ParseToken(eventPayload.Token)
 			if err != nil {
 				fmt.Println("Error parsing token")
 				return

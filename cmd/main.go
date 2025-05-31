@@ -9,9 +9,10 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"github.com/robertvitoriano/penguin-server/internal/database"
-	"github.com/robertvitoriano/penguin-server/internal/handlers"
-	"github.com/robertvitoriano/penguin-server/internal/repositories/redis"
+
+	"github.com/robertvitoriano/penguin-server/internal/infra/database"
+	"github.com/robertvitoriano/penguin-server/internal/infra/handler"
+	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/redis"
 	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
@@ -35,9 +36,9 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	playerHandler := handlers.NewPlayerHandler()
-	levelHandler := handlers.NewLevelHandler()
-	ws := handlers.NewWebsocket()
+	playerHandler := handler.NewPlayerHandler()
+	levelHandler := handler.NewLevelHandler()
+	ws := handler.NewWebsocket()
 
 	router.HandleFunc("/players/{id}", playerHandler.GetPlayer).Methods("GET")
 	router.HandleFunc("/players", func(w http.ResponseWriter, r *http.Request) {

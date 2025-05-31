@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"encoding/json"
@@ -11,9 +11,9 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/mysql"
+	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/redis"
 	"github.com/robertvitoriano/penguin-server/internal/models"
-	"github.com/robertvitoriano/penguin-server/internal/repositories/mysql"
-	"github.com/robertvitoriano/penguin-server/internal/repositories/redis"
 
 	"gorm.io/gorm"
 )
