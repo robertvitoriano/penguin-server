@@ -1,11 +1,11 @@
-package mysqlrepositories
+package mysql
 
 import (
 	"github.com/robertvitoriano/penguin-server/internal/models"
 	"gorm.io/gorm"
 )
 
-type ItemsRepository struct {
+type ItemsMysqlRepository struct {
 	Db *gorm.DB
 }
 type ItemQuery struct {
@@ -13,20 +13,20 @@ type ItemQuery struct {
 	Type string
 }
 
-func NewItemsRepository(db *gorm.DB) *ItemsRepository {
-	return &ItemsRepository{
+func NewItemsRepository(db *gorm.DB) *ItemsMysqlRepository {
+	return &ItemsMysqlRepository{
 		Db: db,
 	}
 }
 
-func (r *ItemsRepository) CreateItem(newItem *models.Item) error {
+func (r *ItemsMysqlRepository) CreateItem(newItem *models.Item) error {
 	if err := r.Db.Create(newItem).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *ItemsRepository) GetItems() ([]models.Enemy, error) {
+func (r *ItemsMysqlRepository) GetItems() ([]models.Enemy, error) {
 	var items []models.Enemy
 	if err := r.Db.Find(&items).Error; err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (r *ItemsRepository) GetItems() ([]models.Enemy, error) {
 	return items, nil
 
 }
-func (r *ItemsRepository) FindItem(criteria ItemQuery) (*models.Item, error) {
+func (r *ItemsMysqlRepository) FindItem(criteria ItemQuery) (*models.Item, error) {
 	var item *models.Item
 
 	err := r.Db.Where(criteria).First(&item).Error

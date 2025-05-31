@@ -1,11 +1,23 @@
-package redisrepositories
+package mysql
 
 import (
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/robertvitoriano/penguin-server/internal/models"
+	"gorm.io/gorm"
 )
+
+type ChatMessagesMysqlRepository struct {
+	Db *gorm.DB
+}
+
+func NewChatMessagesRepository(db *gorm.DB) *ChatMessagesMysqlRepository {
+
+	return &ChatMessagesMysqlRepository{
+		Db: db,
+	}
+}
 
 var ChatMessagesByID = make(map[string][]*models.ChatMessage)
 

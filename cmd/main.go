@@ -13,7 +13,7 @@ import (
 	"github.com/robertvitoriano/penguin-server/internal/database"
 	"github.com/robertvitoriano/penguin-server/internal/handlers"
 	"github.com/robertvitoriano/penguin-server/internal/models"
-	"github.com/robertvitoriano/penguin-server/internal/repositories/redisrepositories"
+	"github.com/robertvitoriano/penguin-server/internal/repositories/redis"
 	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
@@ -54,7 +54,7 @@ func main() {
 		playerID := vars["id"]
 
 		var playerFound *models.Player
-		for _, player := range redisrepositories.GetPlayers() {
+		for _, player := range redis.GetPlayers() {
 			if player.ID == playerID {
 				playerFound = player
 				break
@@ -90,10 +90,10 @@ func main() {
 	removedPlayer := make(chan string)
 	go func(removedPlayer chan string) {
 		for {
-			for _, player := range redisrepositories.GetPlayers() {
+			for _, player := range redis.GetPlayers() {
 				removedPlayer <- player.ID
 				if player.LastTimeOnline == nil || time.Since(*player.LastTimeOnline) >= 7*24*time.Second {
-					redisrepositories.RemoveByID(player.ID)
+					redis.RemoveByID(player.ID)
 				}
 			}
 			time.Sleep(time.Minute)

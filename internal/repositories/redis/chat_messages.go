@@ -1,4 +1,4 @@
-package mysqlrepositories
+package redis
 
 import (
 	"time"

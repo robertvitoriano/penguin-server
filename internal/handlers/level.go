@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/robertvitoriano/penguin-server/internal/models"
-	"github.com/robertvitoriano/penguin-server/internal/repositories/mysqlrepositories"
+	"github.com/robertvitoriano/penguin-server/internal/repositories/mysql"
 	"github.com/robertvitoriano/penguin-server/internal/tiled"
 	"gorm.io/gorm"
 )
@@ -23,8 +23,8 @@ func LoadLevel(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		LevelName string `json:"level_name"`
 	}
 
-	enemyRepository := mysqlrepositories.NewEnemiesRepository(db)
-	itemsRepository := mysqlrepositories.NewItemsRepository(db)
+	enemyRepository := mysql.NewEnemiesRepository(db)
+	itemsRepository := mysql.NewItemsRepository(db)
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 
@@ -45,7 +45,7 @@ func LoadLevel(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		go func(enemy models.Enemy) {
 			defer mapEntitiesWaitGroup.Done()
 
-			query := mysqlrepositories.EnemyQuery{
+			query := mysql.EnemyQuery{
 				ID: *enemy.ID,
 			}
 			enemyFound, err := enemyRepository.FindEnemy(query)
@@ -74,7 +74,7 @@ func LoadLevel(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 		go func(item models.Item) {
 			defer mapEntitiesWaitGroup.Done()
 
-			query := mysqlrepositories.ItemQuery{
+			query := mysql.ItemQuery{
 				ID: *item.ID,
 			}
 

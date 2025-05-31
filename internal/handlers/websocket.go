@@ -11,7 +11,7 @@ import (
 	"github.com/robertvitoriano/penguin-server/internal/events"
 	"github.com/robertvitoriano/penguin-server/internal/models"
 	"github.com/robertvitoriano/penguin-server/internal/payloads"
-	"github.com/robertvitoriano/penguin-server/internal/repositories/redisrepositories"
+	"github.com/robertvitoriano/penguin-server/internal/repositories/redis"
 )
 
 type Websocket struct {
@@ -102,7 +102,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 			var existingPlayer *models.Player
 
-			for _, player := range redisrepositories.Players {
+			for _, player := range redis.Players {
 				if player.ID == claims["id"] {
 
 					existingPlayer = player
@@ -137,7 +137,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 			var emitEventPayload payloads.SetInitialPlayersPositionEvent
 			emitEventPayload.Event = events.SetInitialPlayersPosition
 
-			for _, player := range redisrepositories.Players {
+			for _, player := range redis.Players {
 				emitEventPayload.Players = append(emitEventPayload.Players, payloads.PlayerWithMessages{
 					ID:       player.ID,
 					Username: player.Username,
@@ -146,7 +146,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 						X: *player.Position.X,
 						Y: *player.Position.Y,
 					},
-					ChatMessages: redisrepositories.GetChatMessages(player.ID),
+					ChatMessages: redis.GetChatMessages(player.ID),
 				})
 			}
 
@@ -173,7 +173,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 
-			for _, player := range redisrepositories.Players {
+			for _, player := range redis.Players {
 				if player.ID == claims["id"] {
 					player.Position.X = &eventPayload.Position.X
 					player.Position.Y = &eventPayload.Position.Y
@@ -215,7 +215,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				SenderID: claims["id"].(string),
 				Message:  eventPayload.Message,
 			}
-			redisrepositories.SaveChatMessage(claims["id"].(string), eventPayload.Message)
+			redis.SaveChatMessage(claims["id"].(string), eventPayload.Message)
 
 			emitPayLoadJSON, err := json.Marshal(emitEventPayload)
 

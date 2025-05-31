@@ -1,4 +1,4 @@
-package redisrepositories
+package redis
 
 import (
 	"fmt"

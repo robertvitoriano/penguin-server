@@ -1,11 +1,11 @@
-package mysqlrepositories
+package mysql
 
 import (
 	"github.com/robertvitoriano/penguin-server/internal/models"
 	"gorm.io/gorm"
 )
 
-type EnemiesRepository struct {
+type EnemiesMySqlRepository struct {
 	Db *gorm.DB
 }
 type EnemyQuery struct {
@@ -13,20 +13,20 @@ type EnemyQuery struct {
 	Name string
 }
 
-func NewEnemiesRepository(db *gorm.DB) *EnemiesRepository {
-	return &EnemiesRepository{
+func NewEnemiesRepository(db *gorm.DB) *EnemiesMySqlRepository {
+	return &EnemiesMySqlRepository{
 		Db: db,
 	}
 }
 
-func (r *EnemiesRepository) CreateEnemy(newEnemy *models.Enemy) error {
+func (r *EnemiesMySqlRepository) CreateEnemy(newEnemy *models.Enemy) error {
 	if err := r.Db.Create(newEnemy).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *EnemiesRepository) GetEnemies() ([]models.Enemy, error) {
+func (r *EnemiesMySqlRepository) GetEnemies() ([]models.Enemy, error) {
 	var enemies []models.Enemy
 	if err := r.Db.Find(&enemies).Error; err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (r *EnemiesRepository) GetEnemies() ([]models.Enemy, error) {
 
 }
 
-func (r *EnemiesRepository) FindEnemy(criteria EnemyQuery) (*models.Enemy, error) {
+func (r *EnemiesMySqlRepository) FindEnemy(criteria EnemyQuery) (*models.Enemy, error) {
 	var enemy *models.Enemy
 
 	err := r.Db.Where(criteria).First(&enemy).Error

@@ -12,8 +12,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/robertvitoriano/penguin-server/internal/models"
-	"github.com/robertvitoriano/penguin-server/internal/repositories/mysqlrepositories"
-	"github.com/robertvitoriano/penguin-server/internal/repositories/redisrepositories"
+	"github.com/robertvitoriano/penguin-server/internal/repositories/mysql"
+	"github.com/robertvitoriano/penguin-server/internal/repositories/redis"
+
 	"gorm.io/gorm"
 )
 
@@ -24,13 +25,13 @@ type PlayerCreationResponse struct {
 }
 
 func GetPlayers(w http.ResponseWriter, r *http.Request) {
-	players := redisrepositories.GetPlayers()
+	players := redis.GetPlayers()
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(players)
 }
 
 func GetPlayer(w http.ResponseWriter, r *http.Request) {
-	Players := redisrepositories.GetPlayers()
+	Players := redis.GetPlayers()
 
 	params := mux.Vars(r)
 	for _, player := range Players {
@@ -54,7 +55,7 @@ func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws 
 		return
 	}
 
-	existingUser, err := redisrepositories.FindPlayerByUsername(newPlayer.Username)
+	existingUser, err := redis.FindPlayerByUsername(newPlayer.Username)
 
 	if err == nil {
 
@@ -81,8 +82,8 @@ func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws 
 	newPlayer.Color = newColor
 	newPlayer.ID = uuid.New().String()
 
-	redisrepositories.CreatePlayer(&newPlayer)
-	playerPersistencyRepository := mysqlrepositories.NewPlayerRepository(db)
+	redis.CreatePlayer(&newPlayer)
+	playerPersistencyRepository := mysql.NewPlayerRepository(db)
 	playerPersistencyRepository.CreatePlayer(&newPlayer)
 	ws.Broadcast([]byte(`{"message":"User created"}`))
 
