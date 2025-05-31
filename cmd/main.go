@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,14 +11,12 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/robertvitoriano/penguin-server/internal/database"
 	"github.com/robertvitoriano/penguin-server/internal/handlers"
-	"github.com/robertvitoriano/penguin-server/internal/models"
 	"github.com/robertvitoriano/penguin-server/internal/repositories/redis"
 	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
 
 func main() {
-	ws := handlers.NewWebsocket()
 	err := godotenv.Load()
 
 	if err != nil {
@@ -37,42 +34,22 @@ func main() {
 	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	router.HandleFunc("/players/{id}", handlers.GetPlayer).Methods("GET")
+
+	playerHandler := handlers.NewPlayerHandler()
+	levelHandler := handlers.NewLevelHandler()
+	ws := handlers.NewWebsocket()
+
+	router.HandleFunc("/players/{id}", playerHandler.GetPlayer).Methods("GET")
 	router.HandleFunc("/players", func(w http.ResponseWriter, r *http.Request) {
-		handlers.CreatePlayer(w, r, ws, db.Db)
+		playerHandler.CreatePlayer(w, r, ws, db.Db)
 	}).Methods("POST")
-	router.HandleFunc("/players", handlers.GetPlayers).Methods("GET")
+	router.HandleFunc("/players", playerHandler.GetPlayers).Methods("GET")
 	router.HandleFunc("/load-level", func(w http.ResponseWriter, r *http.Request) {
-		handlers.LoadLevel(w, r, db.Db)
+		levelHandler.LoadLevel(w, r, db.Db)
 	}).Methods("POST")
 
 	router.HandleFunc("/ws", ws.ServeWebsocket).Methods("GET")
-
-	router.HandleFunc("/players/{id}", func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-
-		playerID := vars["id"]
-
-		var playerFound *models.Player
-		for _, player := range redis.GetPlayers() {
-			if player.ID == playerID {
-				playerFound = player
-				break
-			}
-		}
-
-		if playerFound == nil {
-			http.Error(w, "Player not found", http.StatusNotFound)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-
-		err := json.NewEncoder(w).Encode(playerFound)
-		if err != nil {
-			http.Error(w, "Failed to encode player", http.StatusInternalServerError)
-		}
-	})
+	router.HandleFunc("/players/{id}", playerHandler.GetPlayer)
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"https://penguim-adventure.robertvitoriano.com", "http://localhost:8000", fmt.Sprintf("http://%v:8000", os.Getenv("COMPUTER_IP"))},
 

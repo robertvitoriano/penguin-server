@@ -24,27 +24,46 @@ type PlayerCreationResponse struct {
 	Result string        `json:"result"`
 }
 
-func GetPlayers(w http.ResponseWriter, r *http.Request) {
+type PlayerHandler struct {
+}
+
+func NewPlayerHandler() *PlayerHandler {
+	return &PlayerHandler{}
+}
+
+func (p *PlayerHandler) GetPlayers(w http.ResponseWriter, r *http.Request) {
 	players := redis.GetPlayers()
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(players)
 }
 
-func GetPlayer(w http.ResponseWriter, r *http.Request) {
-	Players := redis.GetPlayers()
+func (p *PlayerHandler) GetPlayer(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
 
-	params := mux.Vars(r)
-	for _, player := range Players {
-		if player.ID == params["id"] {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(player)
-			return
+	playerID := vars["id"]
+
+	var playerFound *models.Player
+	for _, player := range redis.GetPlayers() {
+		if player.ID == playerID {
+			playerFound = player
+			break
 		}
 	}
-	http.Error(w, "Player not found", http.StatusNotFound)
+
+	if playerFound == nil {
+		http.Error(w, "Player not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	err := json.NewEncoder(w).Encode(playerFound)
+	if err != nil {
+		http.Error(w, "Failed to encode player", http.StatusInternalServerError)
+	}
 }
 
-func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws *Websocket, db *gorm.DB) {
+func (p *PlayerHandler) CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws *Websocket, db *gorm.DB) {
 	responseWriter.Header().Set("Content-Type", "application/json")
 
 	var newPlayer models.Player
@@ -120,6 +139,6 @@ func CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws 
 
 }
 
-func GetPlayerMessages(responseWriter http.ResponseWriter, request *http.Request, ws *Websocket) {
+func (p *PlayerHandler) GetPlayerMessages(responseWriter http.ResponseWriter, request *http.Request, ws *Websocket) {
 
 }

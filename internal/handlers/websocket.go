@@ -39,6 +39,18 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+func NewWebsocket() *Websocket {
+	ws := &Websocket{
+		Connections:      make(map[*websocket.Conn]bool),
+		addConnection:    make(chan *websocket.Conn),
+		removeConnection: make(chan *websocket.Conn),
+		broadcast:        make(chan broadcastMessage),
+	}
+
+	go ws.hub()
+	return ws
+}
+
 func (ws *Websocket) ServeWebsocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -384,16 +396,4 @@ func (ws *Websocket) hub() {
 			}
 		}
 	}
-}
-
-func NewWebsocket() *Websocket {
-	ws := &Websocket{
-		Connections:      make(map[*websocket.Conn]bool),
-		addConnection:    make(chan *websocket.Conn),
-		removeConnection: make(chan *websocket.Conn),
-		broadcast:        make(chan broadcastMessage),
-	}
-
-	go ws.hub()
-	return ws
 }

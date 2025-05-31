@@ -13,12 +13,18 @@ import (
 	"gorm.io/gorm"
 )
 
+type LevelHandler struct{}
+
+func NewLevelHandler() *LevelHandler {
+	return &LevelHandler{}
+}
+
 type LoadLevelResponse struct {
 	Enemies []models.Enemy `json:"enemies"`
 	Items   []models.Item  `json:"items"`
 }
 
-func LoadLevel(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
+func (l *LevelHandler) LoadLevel(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	var request struct {
 		LevelName string `json:"level_name"`
 	}
