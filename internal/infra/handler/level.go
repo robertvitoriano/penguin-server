@@ -9,7 +9,7 @@ import (
 
 	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 	"github.com/robertvitoriano/penguin-server/internal/domain/usecase"
-	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/mysql"
+	"github.com/robertvitoriano/penguin-server/internal/infra/repository/mysql"
 	"gorm.io/gorm"
 )
 

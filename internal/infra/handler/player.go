@@ -12,8 +12,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
-	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/mysql"
-	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/redis"
+	"github.com/robertvitoriano/penguin-server/internal/domain/repository"
+	"github.com/robertvitoriano/penguin-server/internal/infra/repository/mysql"
+	"github.com/robertvitoriano/penguin-server/internal/infra/repository/redis"
 
 	"gorm.io/gorm"
 )
@@ -25,14 +26,22 @@ type PlayerCreationResponse struct {
 }
 
 type PlayerHandler struct {
+	PlayerPersistencyRepository repository.PlayerRepository
+	PlayerLiveDataRepository    repository.PlayerRepository
 }
 
-func NewPlayerHandler() *PlayerHandler {
-	return &PlayerHandler{}
+func NewPlayerHandler(db *gorm.DB) *PlayerHandler {
+	return &PlayerHandler{
+		PlayerPersistencyRepository: mysql.NewPlayerRepository(db),
+		PlayerLiveDataRepository:    redis.NewPlayerRepository(),
+	}
 }
 
 func (p *PlayerHandler) GetPlayers(w http.ResponseWriter, r *http.Request) {
-	players := redis.GetPlayers()
+	players, err := p.PlayerLiveDataRepository.List()
+	if err != nil {
+		log.Printf("Error listing players: %s", err.Error())
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(players)
 }
@@ -43,7 +52,14 @@ func (p *PlayerHandler) GetPlayer(w http.ResponseWriter, r *http.Request) {
 	playerID := vars["id"]
 
 	var playerFound *entities.Player
-	for _, player := range redis.GetPlayers() {
+	players, err := p.PlayerLiveDataRepository.List()
+
+	if err != nil {
+		http.Error(w, "Failed to list players", http.StatusInternalServerError)
+		return
+	}
+
+	for _, player := range players {
 		if player.ID == playerID {
 			playerFound = player
 			break
@@ -57,7 +73,7 @@ func (p *PlayerHandler) GetPlayer(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	err := json.NewEncoder(w).Encode(playerFound)
+	err = json.NewEncoder(w).Encode(playerFound)
 	if err != nil {
 		http.Error(w, "Failed to encode player", http.StatusInternalServerError)
 	}
@@ -74,14 +90,14 @@ func (p *PlayerHandler) CreatePlayer(responseWriter http.ResponseWriter, request
 		return
 	}
 
-	existingUser, err := redis.FindPlayerByUsername(newPlayer.Username)
+	existingUser, err := p.PlayerLiveDataRepository.FindByUsername(newPlayer.Username)
 
 	if err == nil {
 
 		responseWriter.WriteHeader(http.StatusCreated)
 
 		response := PlayerCreationResponse{
-			Player: existingUser,
+			Player: *existingUser,
 			Result: "User already exists",
 		}
 
@@ -101,9 +117,9 @@ func (p *PlayerHandler) CreatePlayer(responseWriter http.ResponseWriter, request
 	newPlayer.Color = newColor
 	newPlayer.ID = uuid.New().String()
 
-	redis.CreatePlayer(&newPlayer)
-	playerPersistencyRepository := mysql.NewPlayerRepository(db)
-	playerPersistencyRepository.CreatePlayer(&newPlayer)
+	p.PlayerLiveDataRepository.Save(&newPlayer)
+	p.PlayerPersistencyRepository.Save(&newPlayer)
+
 	ws.Broadcast([]byte(`{"message":"User created"}`))
 
 	var (

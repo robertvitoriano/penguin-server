@@ -12,7 +12,7 @@ import (
 
 	"github.com/robertvitoriano/penguin-server/internal/infra/database"
 	"github.com/robertvitoriano/penguin-server/internal/infra/handler"
-	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/redis"
+	"github.com/robertvitoriano/penguin-server/internal/infra/repository/redis"
 	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
@@ -36,7 +36,7 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	playerHandler := handler.NewPlayerHandler()
+	playerHandler := handler.NewPlayerHandler(db.Db)
 	levelHandler := handler.NewLevelHandler()
 	ws := handler.NewWebsocket()
 
@@ -68,7 +68,7 @@ func main() {
 	removedPlayer := make(chan string)
 	go func(removedPlayer chan string) {
 		for {
-			for _, player := range redis.GetPlayers() {
+			for _, player := range redis.List() {
 				removedPlayer <- player.ID
 				if player.LastTimeOnline == nil || time.Since(*player.LastTimeOnline) >= 7*24*time.Second {
 					redis.RemoveByID(player.ID)

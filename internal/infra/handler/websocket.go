@@ -10,7 +10,7 @@ import (
 	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 	"github.com/robertvitoriano/penguin-server/internal/domain/events"
 	"github.com/robertvitoriano/penguin-server/internal/domain/payloads"
-	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/redis"
+	"github.com/robertvitoriano/penguin-server/internal/infra/repository/redis"
 	"github.com/robertvitoriano/penguin-server/internal/utils"
 )
 
