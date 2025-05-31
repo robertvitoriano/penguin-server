@@ -1,4 +1,4 @@
-package models
+package entities
 
 type ChatMessage struct {
 	ID         string `json:"id"`

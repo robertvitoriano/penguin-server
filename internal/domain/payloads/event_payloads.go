@@ -1,8 +1,8 @@
 package payloads
 
 import (
-	"github.com/robertvitoriano/penguin-server/internal/events"
-	"github.com/robertvitoriano/penguin-server/internal/models"
+	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
+	"github.com/robertvitoriano/penguin-server/internal/domain/events"
 )
 
 type UpdateOtherPlayerPositionEvent struct {
@@ -26,11 +26,11 @@ type AudioChuckReceivedEvent struct {
 }
 
 type PlayerWithMessages struct {
-	ID           string                `json:"id"`
-	Username     string                `json:"username"`
-	Color        string                `json:"color"`
-	Position     Position              `json:"position"`
-	ChatMessages []*models.ChatMessage `json:"chatMessages"`
+	ID           string                  `json:"id"`
+	Username     string                  `json:"username"`
+	Color        string                  `json:"color"`
+	Position     Position                `json:"position"`
+	ChatMessages []*entities.ChatMessage `json:"chatMessages"`
 }
 
 type SetInitialPlayersPositionEvent struct {

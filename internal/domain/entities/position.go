@@ -1,4 +1,4 @@
-package models
+package entities
 
 type Position struct {
 	X *float64 `json:"x"`

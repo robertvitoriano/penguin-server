@@ -3,24 +3,24 @@ package redis
 import (
 	"fmt"
 
-	"github.com/robertvitoriano/penguin-server/internal/models"
+	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 )
 
-var Enemies = []*models.Enemy{}
+var Enemies = []*entities.Enemy{}
 
-func GetEnemies() []*models.Enemy {
+func GetEnemies() []*entities.Enemy {
 	return Enemies
 }
 
-func CreateEnemy(newEnemy *models.Enemy) []*models.Enemy {
+func CreateEnemy(newEnemy *entities.Enemy) []*entities.Enemy {
 	Enemies = append(Enemies, newEnemy)
 
 	return Enemies
 }
 
-func KillEnemy(id string) (*models.Enemy, error) {
-	newSlice := []*models.Enemy{}
-	removedEnemy := models.Enemy{}
+func KillEnemy(id string) (*entities.Enemy, error) {
+	newSlice := []*entities.Enemy{}
+	removedEnemy := entities.Enemy{}
 
 	for _, enemy := range Enemies {
 		if enemy.ID == nil {

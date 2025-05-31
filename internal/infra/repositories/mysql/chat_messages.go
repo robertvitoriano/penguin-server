@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/robertvitoriano/penguin-server/internal/models"
+	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 	"gorm.io/gorm"
 )
 
@@ -19,14 +19,14 @@ func NewChatMessagesRepository(db *gorm.DB) *ChatMessagesMysqlRepository {
 	}
 }
 
-var ChatMessagesByID = make(map[string][]*models.ChatMessage)
+var ChatMessagesByID = make(map[string][]*entities.ChatMessage)
 
-func GetChatMessages(playerId string) []*models.ChatMessage {
+func GetChatMessages(playerId string) []*entities.ChatMessage {
 	return ChatMessagesByID[playerId]
 }
 
 func SaveChatMessage(playerId string, newChatMessage string) {
-	chatMessage := &models.ChatMessage{
+	chatMessage := &entities.ChatMessage{
 		ID:         uuid.New().String(),
 		SenderId:   playerId,
 		ReceiverId: uuid.Nil.String(),

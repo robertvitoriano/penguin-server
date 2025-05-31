@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/robertvitoriano/penguin-server/internal/models"
+	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -27,7 +27,7 @@ func (d *Database) Connect() (*gorm.DB, error) {
 	}
 
 	// d.Db.Debug()
-	d.Db.AutoMigrate(&models.Player{}, &models.Enemy{}, &models.Item{})
+	d.Db.AutoMigrate(&entities.Player{}, &entities.Enemy{}, &entities.Item{})
 	return d.Db, nil
 
 }

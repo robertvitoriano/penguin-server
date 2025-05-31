@@ -11,17 +11,17 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/mysql"
 	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/redis"
-	"github.com/robertvitoriano/penguin-server/internal/models"
 
 	"gorm.io/gorm"
 )
 
 type PlayerCreationResponse struct {
-	Player models.Player `json:"player"`
-	Token  string        `json:"token"`
-	Result string        `json:"result"`
+	Player entities.Player `json:"player"`
+	Token  string          `json:"token"`
+	Result string          `json:"result"`
 }
 
 type PlayerHandler struct {
@@ -42,7 +42,7 @@ func (p *PlayerHandler) GetPlayer(w http.ResponseWriter, r *http.Request) {
 
 	playerID := vars["id"]
 
-	var playerFound *models.Player
+	var playerFound *entities.Player
 	for _, player := range redis.GetPlayers() {
 		if player.ID == playerID {
 			playerFound = player
@@ -66,7 +66,7 @@ func (p *PlayerHandler) GetPlayer(w http.ResponseWriter, r *http.Request) {
 func (p *PlayerHandler) CreatePlayer(responseWriter http.ResponseWriter, request *http.Request, ws *Websocket, db *gorm.DB) {
 	responseWriter.Header().Set("Content-Type", "application/json")
 
-	var newPlayer models.Player
+	var newPlayer entities.Player
 
 	err := json.NewDecoder(request.Body).Decode(&newPlayer)
 	if err != nil {

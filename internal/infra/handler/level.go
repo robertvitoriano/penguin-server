@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/mysql"
-	"github.com/robertvitoriano/penguin-server/internal/models"
 	"github.com/robertvitoriano/penguin-server/internal/tiled"
 	"gorm.io/gorm"
 )
@@ -20,8 +20,8 @@ func NewLevelHandler() *LevelHandler {
 }
 
 type LoadLevelResponse struct {
-	Enemies []models.Enemy `json:"enemies"`
-	Items   []models.Item  `json:"items"`
+	Enemies []entities.Enemy `json:"enemies"`
+	Items   []entities.Item  `json:"items"`
 }
 
 func (l *LevelHandler) LoadLevel(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
@@ -44,11 +44,11 @@ func (l *LevelHandler) LoadLevel(w http.ResponseWriter, r *http.Request, db *gor
 
 	mapEntitiesWaitGroup.Add(len(tileMap.Enemies) + len(tileMap.Items))
 
-	responseItemsChan := make(chan models.Item)
-	responseEnemiesChan := make(chan models.Enemy)
+	responseItemsChan := make(chan entities.Item)
+	responseEnemiesChan := make(chan entities.Enemy)
 
 	for _, enemy := range tileMap.Enemies {
-		go func(enemy models.Enemy) {
+		go func(enemy entities.Enemy) {
 			defer mapEntitiesWaitGroup.Done()
 
 			query := mysql.EnemyQuery{
@@ -77,7 +77,7 @@ func (l *LevelHandler) LoadLevel(w http.ResponseWriter, r *http.Request, db *gor
 	}
 
 	for _, item := range tileMap.Items {
-		go func(item models.Item) {
+		go func(item entities.Item) {
 			defer mapEntitiesWaitGroup.Done()
 
 			query := mysql.ItemQuery{
@@ -114,8 +114,8 @@ func (l *LevelHandler) LoadLevel(w http.ResponseWriter, r *http.Request, db *gor
 		close(responseEnemiesChan)
 	}()
 
-	var responseItems []models.Item
-	var responseEnemies []models.Enemy
+	var responseItems []entities.Item
+	var responseEnemies []entities.Enemy
 
 	var responseWaitGroup sync.WaitGroup
 

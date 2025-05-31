@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/robertvitoriano/penguin-server/internal/events"
+	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
+	"github.com/robertvitoriano/penguin-server/internal/domain/events"
+	"github.com/robertvitoriano/penguin-server/internal/domain/payloads"
 	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/redis"
-	"github.com/robertvitoriano/penguin-server/internal/models"
-	"github.com/robertvitoriano/penguin-server/internal/payloads"
 	"github.com/robertvitoriano/penguin-server/internal/utils"
 )
 
@@ -112,7 +112,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 
-			var existingPlayer *models.Player
+			var existingPlayer *entities.Player
 
 			for _, player := range redis.Players {
 				if player.ID == claims["id"] {
@@ -120,7 +120,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 					existingPlayer = player
 
 					if existingPlayer.Position == nil {
-						player.Position = &models.Position{
+						player.Position = &entities.Position{
 							X: &eventPayload.Position.X,
 							Y: &eventPayload.Position.Y,
 						}

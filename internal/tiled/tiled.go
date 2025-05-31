@@ -7,12 +7,12 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/robertvitoriano/penguin-server/internal/models"
+	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 )
 
 type TileMap struct {
-	Enemies []models.Enemy
-	Items   []models.Item
+	Enemies []entities.Enemy
+	Items   []entities.Item
 }
 
 func NewTileMap(path string) *TileMap {
@@ -55,14 +55,14 @@ func NewTileMap(path string) *TileMap {
 						if err != nil {
 							log.Fatalf("Failed to convert id to int: %v", err)
 						}
-						tileMap.Enemies = append(tileMap.Enemies, models.Enemy{
+						tileMap.Enemies = append(tileMap.Enemies, entities.Enemy{
 							ID:   &id,
 							Name: enemy.Name,
-							Position: &models.Position{
+							Position: &entities.Position{
 								X: &enemy.X,
 								Y: &enemy.Y,
 							},
-							Size: &models.Size{
+							Size: &entities.Size{
 								Height: &enemy.Height,
 								Width:  &enemy.Width,
 							},
@@ -91,15 +91,15 @@ func NewTileMap(path string) *TileMap {
 						if err != nil {
 							log.Fatalf("Failed to convert id to int: %v", err)
 						}
-						tileMap.Items = append(tileMap.Items, models.Item{
+						tileMap.Items = append(tileMap.Items, entities.Item{
 							Type: item.Properties[*propertyIndex].Value,
 							Name: item.Name,
 							ID:   &id,
-							Position: &models.Position{
+							Position: &entities.Position{
 								X: &item.X,
 								Y: &item.Y,
 							},
-							Size: &models.Size{
+							Size: &entities.Size{
 								Height: &item.Height,
 								Width:  &item.Width,
 							},

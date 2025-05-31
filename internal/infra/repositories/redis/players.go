@@ -3,24 +3,24 @@ package redis
 import (
 	"fmt"
 
-	"github.com/robertvitoriano/penguin-server/internal/models"
+	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 )
 
-var Players = []*models.Player{}
+var Players = []*entities.Player{}
 
-func GetPlayers() []*models.Player {
+func GetPlayers() []*entities.Player {
 	return Players
 }
 
-func CreatePlayer(newPlayer *models.Player) []*models.Player {
+func CreatePlayer(newPlayer *entities.Player) []*entities.Player {
 	Players = append(Players, newPlayer)
 
 	return Players
 }
 
-func RemoveByID(id string) (*models.Player, error) {
-	newSlice := []*models.Player{}
-	removedPlayer := models.Player{}
+func RemoveByID(id string) (*entities.Player, error) {
+	newSlice := []*entities.Player{}
+	removedPlayer := entities.Player{}
 
 	for _, player := range Players {
 		if player.ID == id {
@@ -38,7 +38,7 @@ func RemoveByID(id string) (*models.Player, error) {
 	return &removedPlayer, nil
 }
 
-func FindPlayerByUsername(username string) (models.Player, error) {
+func FindPlayerByUsername(username string) (entities.Player, error) {
 	for _, player := range Players {
 
 		if player.Username == username {
@@ -46,5 +46,5 @@ func FindPlayerByUsername(username string) (models.Player, error) {
 		}
 
 	}
-	return models.Player{}, fmt.Errorf("player not found")
+	return entities.Player{}, fmt.Errorf("player not found")
 }

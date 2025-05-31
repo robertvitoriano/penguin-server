@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	"github.com/robertvitoriano/penguin-server/internal/models"
+	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 	"gorm.io/gorm"
 )
 
@@ -19,15 +19,15 @@ func NewItemsRepository(db *gorm.DB) *ItemsMysqlRepository {
 	}
 }
 
-func (r *ItemsMysqlRepository) CreateItem(newItem *models.Item) error {
+func (r *ItemsMysqlRepository) CreateItem(newItem *entities.Item) error {
 	if err := r.Db.Create(newItem).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *ItemsMysqlRepository) GetItems() ([]models.Enemy, error) {
-	var items []models.Enemy
+func (r *ItemsMysqlRepository) GetItems() ([]entities.Enemy, error) {
+	var items []entities.Enemy
 	if err := r.Db.Find(&items).Error; err != nil {
 		return nil, err
 	}
@@ -35,8 +35,8 @@ func (r *ItemsMysqlRepository) GetItems() ([]models.Enemy, error) {
 	return items, nil
 
 }
-func (r *ItemsMysqlRepository) FindItem(criteria ItemQuery) (*models.Item, error) {
-	var item *models.Item
+func (r *ItemsMysqlRepository) FindItem(criteria ItemQuery) (*entities.Item, error) {
+	var item *entities.Item
 
 	err := r.Db.Where(criteria).First(&item).Error
 

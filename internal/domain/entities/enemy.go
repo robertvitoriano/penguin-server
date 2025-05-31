@@ -1,4 +1,4 @@
-package models
+package entities
 
 type Enemy struct {
 	ID       *int      `json:"id"`
