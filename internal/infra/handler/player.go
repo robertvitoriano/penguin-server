@@ -13,8 +13,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 	"github.com/robertvitoriano/penguin-server/internal/domain/repository"
-	"github.com/robertvitoriano/penguin-server/internal/infra/repository/mysql"
-	"github.com/robertvitoriano/penguin-server/internal/infra/repository/redis"
 
 	"gorm.io/gorm"
 )
@@ -30,10 +28,10 @@ type PlayerHandler struct {
 	PlayerLiveDataRepository    repository.PlayerRepository
 }
 
-func NewPlayerHandler(db *gorm.DB) *PlayerHandler {
+func NewPlayerHandler(playerPersistencyRepository repository.PlayerRepository, playerLiveDataRepository repository.PlayerRepository) *PlayerHandler {
 	return &PlayerHandler{
-		PlayerPersistencyRepository: mysql.NewPlayerRepository(db),
-		PlayerLiveDataRepository:    redis.NewPlayerRepository(),
+		PlayerPersistencyRepository: playerPersistencyRepository,
+		PlayerLiveDataRepository:    playerLiveDataRepository,
 	}
 }
 
@@ -139,7 +137,9 @@ func (p *PlayerHandler) CreatePlayer(responseWriter http.ResponseWriter, request
 	signedToken, err = jwtToken.SignedString([]byte(secretKey))
 
 	if err != nil {
-		log.Fatalf("Error signing token: %v", err)
+		log.Printf("Error signing token: %v", err)
+		http.Error(responseWriter, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
 	response := PlayerCreationResponse{
