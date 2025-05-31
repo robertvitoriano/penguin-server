@@ -8,15 +8,19 @@ import (
 	"sync"
 
 	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
+	"github.com/robertvitoriano/penguin-server/internal/domain/usecase"
 	"github.com/robertvitoriano/penguin-server/internal/infra/repositories/mysql"
-	"github.com/robertvitoriano/penguin-server/internal/tiled"
 	"gorm.io/gorm"
 )
 
-type LevelHandler struct{}
+type LevelHandler struct {
+	levelUseCase usecase.LevelUseCase
+}
 
 func NewLevelHandler() *LevelHandler {
-	return &LevelHandler{}
+	return &LevelHandler{
+		levelUseCase: *usecase.NewLevelUseCase(),
+	}
 }
 
 type LoadLevelResponse struct {
@@ -38,7 +42,7 @@ func (l *LevelHandler) LoadLevel(w http.ResponseWriter, r *http.Request, db *gor
 		log.Panic("level name is required")
 	}
 
-	tileMap := tiled.NewTileMap(fmt.Sprintf("assets/maps/%v.json", request.LevelName))
+	tileMap := l.levelUseCase.NewTileMap(fmt.Sprintf("assets/maps/%v.json", request.LevelName))
 
 	mapEntitiesWaitGroup := sync.WaitGroup{}
 

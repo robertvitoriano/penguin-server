@@ -1,4 +1,14 @@
-package tiled
+package usecase
+
+import (
+	"encoding/json"
+	"io"
+	"log"
+	"os"
+	"strconv"
+
+	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
+)
 
 type Animation struct {
 	Duration int `json:"duration"`
@@ -81,4 +91,114 @@ type LevelData struct {
 	TileWidth        float64   `json:"tilewidth"`
 	Layers           []Layer   `json:"layers"`
 	TileSets         []TileSet `json:"tilesets"`
+}
+
+type LevelUseCase struct {
+}
+
+func NewLevelUseCase() *LevelUseCase {
+	return &LevelUseCase{}
+}
+
+type TileMap struct {
+	Enemies []entities.Enemy
+	Items   []entities.Item
+}
+
+func (l *LevelUseCase) NewTileMap(path string) *TileMap {
+	jsonFile, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer jsonFile.Close()
+
+	jsonFileData, err := io.ReadAll(jsonFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var parsedData LevelData
+	err = json.Unmarshal(jsonFileData, &parsedData)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var tileMap = &TileMap{}
+
+	for _, layer := range parsedData.Layers {
+		switch layer.Name {
+		case "enemies":
+			{
+				for _, enemy := range layer.Objects {
+
+					var idPropertyIndex *int
+
+					for index, property := range enemy.Properties {
+						if property.Name == "id" {
+							idPropertyIndex = &index
+						}
+					}
+
+					if idPropertyIndex != nil {
+						id, err := strconv.Atoi(enemy.Properties[*idPropertyIndex].Value)
+
+						if err != nil {
+							log.Fatalf("Failed to convert id to int: %v", err)
+						}
+						tileMap.Enemies = append(tileMap.Enemies, entities.Enemy{
+							ID:   &id,
+							Name: enemy.Name,
+							Position: &entities.Position{
+								X: &enemy.X,
+								Y: &enemy.Y,
+							},
+							Size: &entities.Size{
+								Height: &enemy.Height,
+								Width:  &enemy.Width,
+							},
+						})
+					}
+				}
+				break
+			}
+		case "items":
+			{
+				for _, item := range layer.Objects {
+
+					var propertyIndex *int
+
+					for index, property := range item.Properties {
+						if property.Name == "id" {
+							propertyIndex = &index
+						}
+						if property.Name == "type" {
+							propertyIndex = &index
+						}
+					}
+					if propertyIndex != nil {
+						id, err := strconv.Atoi(item.Properties[*propertyIndex].Value)
+
+						if err != nil {
+							log.Fatalf("Failed to convert id to int: %v", err)
+						}
+						tileMap.Items = append(tileMap.Items, entities.Item{
+							Type: item.Properties[*propertyIndex].Value,
+							Name: item.Name,
+							ID:   &id,
+							Position: &entities.Position{
+								X: &item.X,
+								Y: &item.Y,
+							},
+							Size: &entities.Size{
+								Height: &item.Height,
+								Width:  &item.Width,
+							},
+						})
+					}
+				}
+			}
+		}
+
+	}
+	return tileMap
 }
