@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
@@ -114,7 +115,8 @@ func (p *PlayerHandler) CreatePlayer(responseWriter http.ResponseWriter, request
 
 	newPlayer.Color = newColor
 	newPlayer.ID = uuid.New().String()
-
+	now := time.Now()
+	newPlayer.LastTimeOnline = &now
 	p.PlayerLiveDataRepository.Save(&newPlayer)
 	p.PlayerPersistencyRepository.Save(&newPlayer)
 
