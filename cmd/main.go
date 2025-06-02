@@ -27,7 +27,14 @@ func main() {
 
 	db := database.NewDb()
 
-	db.Dsn = fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local", os.Getenv("MYSQL_USER"), os.Getenv("MYSQL_PASSWORD"), os.Getenv("MYSQL_HOST"), os.Getenv("MYSQL_PORT"), os.Getenv("MYSQL_DATABASE"))
+	db.Dsn = fmt.Sprintf(
+		"%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local",
+		os.Getenv("MYSQL_USER"),
+		os.Getenv("MYSQL_PASSWORD"),
+		os.Getenv("MYSQL_HOST"),
+		os.Getenv("MYSQL_PORT"),
+		os.Getenv("MYSQL_DATABASE"))
+
 	db.Db = &gorm.DB{}
 	db.DbType = "mysql"
 	db.Connect()
