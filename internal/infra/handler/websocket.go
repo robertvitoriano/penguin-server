@@ -197,7 +197,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 
-			players, err := redis.NewPlayerRepository().List()
+			players, err := ws.playerLiveDataRepository.List()
 
 			if err != nil {
 				fmt.Println(err.Error())
