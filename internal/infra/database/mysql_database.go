@@ -12,7 +12,7 @@ type Database struct {
 	DbType string
 }
 
-func NewDb() *Database {
+func NewMysqlDabase() *Database {
 	return &Database{}
 }
 
