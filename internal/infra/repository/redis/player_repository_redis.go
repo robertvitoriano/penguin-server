@@ -9,8 +9,6 @@ import (
 	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 )
 
-var Players = []*entities.Player{}
-
 type PlayerRedisRepository struct {
 	client *redis.Client
 }
