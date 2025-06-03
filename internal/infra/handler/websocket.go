@@ -10,15 +10,18 @@ import (
 	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 	"github.com/robertvitoriano/penguin-server/internal/domain/events"
 	"github.com/robertvitoriano/penguin-server/internal/domain/payloads"
+	"github.com/robertvitoriano/penguin-server/internal/domain/repository"
 	"github.com/robertvitoriano/penguin-server/internal/infra/repository/redis"
 	"github.com/robertvitoriano/penguin-server/internal/utils"
 )
 
 type Websocket struct {
-	Connections      map[*websocket.Conn]bool
-	addConnection    chan *websocket.Conn
-	removeConnection chan *websocket.Conn
-	broadcast        chan broadcastMessage
+	Connections                 map[*websocket.Conn]bool
+	addConnection               chan *websocket.Conn
+	removeConnection            chan *websocket.Conn
+	broadcast                   chan broadcastMessage
+	playerLiveDataRepository    repository.PlayerRepository
+	playerPersistencyRepository repository.PlayerRepository
 }
 
 type BaseMessage struct {
@@ -39,12 +42,14 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func NewWebsocket() *Websocket {
+func NewWebsocket(playerLiveDataRepository repository.PlayerRepository, playerPersistencyRepository repository.PlayerRepository) *Websocket {
 	ws := &Websocket{
-		Connections:      make(map[*websocket.Conn]bool),
-		addConnection:    make(chan *websocket.Conn),
-		removeConnection: make(chan *websocket.Conn),
-		broadcast:        make(chan broadcastMessage),
+		Connections:                 make(map[*websocket.Conn]bool),
+		addConnection:               make(chan *websocket.Conn),
+		removeConnection:            make(chan *websocket.Conn),
+		broadcast:                   make(chan broadcastMessage),
+		playerLiveDataRepository:    playerLiveDataRepository,
+		playerPersistencyRepository: playerPersistencyRepository,
 	}
 
 	go ws.hub()
@@ -114,7 +119,12 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 
 			var existingPlayer *entities.Player
 
-			for _, player := range redis.Players {
+			players, err := ws.playerLiveDataRepository.List()
+
+			if err != nil {
+				log.Println(err.Error())
+			}
+			for _, player := range players {
 				if player.ID == claims["id"] {
 
 					existingPlayer = player
@@ -149,7 +159,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 			var emitEventPayload payloads.SetInitialPlayersPositionEvent
 			emitEventPayload.Event = events.SetInitialPlayersPosition
 
-			for _, player := range redis.Players {
+			for _, player := range players {
 				emitEventPayload.Players = append(emitEventPayload.Players, payloads.PlayerWithMessages{
 					ID:       player.ID,
 					Username: player.Username,
@@ -174,18 +184,25 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 	case events.PlayerMoved:
 		{
 			var eventPayload payloads.PlayerMovedEvent
+
 			if err := json.Unmarshal(data, &eventPayload); err != nil {
 				fmt.Println("error parsing PlayerMoved event")
 				return
 			}
 
 			claims, err := utils.ParseToken(eventPayload.Token)
+
 			if err != nil {
 				fmt.Println("Error parsing token")
 				return
 			}
 
-			for _, player := range redis.Players {
+			players, err := redis.NewPlayerRepository().List()
+
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			for _, player := range players {
 				if player.ID == claims["id"] {
 					player.Position.X = &eventPayload.Position.X
 					player.Position.Y = &eventPayload.Position.Y

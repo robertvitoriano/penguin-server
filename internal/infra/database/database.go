@@ -26,7 +26,7 @@ func (d *Database) Connect() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	// d.Db.Debug()
+	d.Db.Debug()
 	d.Db.AutoMigrate(&entities.Player{}, &entities.Enemy{}, &entities.Item{})
 	return d.Db, nil
 

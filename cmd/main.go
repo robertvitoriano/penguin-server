@@ -49,7 +49,7 @@ func main() {
 
 	playerHandler := handler.NewPlayerHandler(playerPersistencyRepository, playerLiveDataRepository)
 	levelHandler := handler.NewLevelHandler()
-	ws := handler.NewWebsocket()
+	ws := handler.NewWebsocket(playerLiveDataRepository, playerPersistencyRepository)
 
 	router.HandleFunc("/players/{id}", playerHandler.GetPlayer).Methods("GET")
 	router.HandleFunc("/players", func(w http.ResponseWriter, r *http.Request) {

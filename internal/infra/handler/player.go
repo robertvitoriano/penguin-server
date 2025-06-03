@@ -84,6 +84,7 @@ func (p *PlayerHandler) CreatePlayer(responseWriter http.ResponseWriter, request
 	var newPlayer entities.Player
 
 	err := json.NewDecoder(request.Body).Decode(&newPlayer)
+
 	if err != nil {
 		http.Error(responseWriter, "Invalid request body", http.StatusBadRequest)
 		return
@@ -115,8 +116,10 @@ func (p *PlayerHandler) CreatePlayer(responseWriter http.ResponseWriter, request
 
 	newPlayer.Color = newColor
 	newPlayer.ID = uuid.New().String()
+
 	now := time.Now()
 	newPlayer.LastTimeOnline = &now
+
 	p.PlayerLiveDataRepository.Save(&newPlayer)
 	p.PlayerPersistencyRepository.Save(&newPlayer)
 
