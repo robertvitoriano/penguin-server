@@ -1,4 +1,4 @@
-FROM golang:1.20 as builder
+FROM golang:1.24 as builder
 
 WORKDIR /app
 
@@ -10,12 +10,14 @@ COPY . .
 
 RUN go build -o penguin-server cmd/main.go
 
-FROM debian:bullseye-slim
+FROM debian:bookworm
 
 WORKDIR /app
 
 COPY --from=builder /app/penguin-server .
 
 EXPOSE 7777
+
+COPY .env ./
 
 CMD ["./penguin-server"]
