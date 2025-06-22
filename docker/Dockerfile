@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o penguin-server cmd/main.go
+RUN go build -x -v -o penguin-server cmd/main.go
 
 FROM debian:bookworm
 
