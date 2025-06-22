@@ -79,7 +79,7 @@ func (ws *Websocket) ServeWebsocket(w http.ResponseWriter, r *http.Request) {
 
 		var message BaseMessage
 		json.Unmarshal(data, &message)
-
+		fmt.Printf("RECEIVED WEBSOCKET_MESSAGE:%v\n", message)
 		ws.handleIncomingMessage(conn, events.GameReceiveEvent(message.Event), data)
 	}
 }
