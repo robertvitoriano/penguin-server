@@ -49,7 +49,6 @@ func (p *PlayerHandler) GetPlayer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	playerID := vars["id"]
-
 	var playerFound *entities.Player
 	players, err := p.PlayerLiveDataRepository.List()
 

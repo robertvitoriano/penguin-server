@@ -1,65 +1,98 @@
 package redis
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/robertvitoriano/penguin-server/internal/domain/entities"
 )
 
-var Players = []*entities.Player{}
-
-func NewPlayerRepository() *PlayerRedisRepository {
-	return &PlayerRedisRepository{}
-}
-func (p *PlayerRedisRepository) List() ([]*entities.Player, error) {
-	return Players, nil
-}
-
 type PlayerRedisRepository struct {
+	client *redis.Client
 }
+
+func NewPlayerRepository(client *redis.Client) *PlayerRedisRepository {
+	return &PlayerRedisRepository{
+		client: client,
+	}
+}
+
+var ctx = context.Background()
 
 func (p *PlayerRedisRepository) Save(newPlayer *entities.Player) error {
-	Players = append(Players, newPlayer)
-	return nil
+	data, err := json.Marshal(newPlayer)
+
+	if err != nil {
+		return err
+	}
+	return p.client.Set(ctx, "player:"+newPlayer.ID, data, 0).Err()
+}
+
+func (p *PlayerRedisRepository) List() ([]*entities.Player, error) {
+	var players []*entities.Player
+	iter := p.client.Scan(ctx, 0, "player:*", 0).Iterator()
+	for iter.Next(ctx) {
+		val, err := p.client.Get(ctx, iter.Val()).Result()
+		if err != nil {
+			continue
+		}
+		var player entities.Player
+		if err := json.Unmarshal([]byte(val), &player); err != nil {
+			continue
+		}
+		players = append(players, &player)
+	}
+	if err := iter.Err(); err != nil {
+		return nil, err
+	}
+	return players, nil
 }
 
 func (p *PlayerRedisRepository) RemoveByID(id string) (*entities.Player, error) {
-	newSlice := []*entities.Player{}
-	removedPlayer := entities.Player{}
+	playerToRemove, err := p.FindByID(id)
 
-	for _, player := range Players {
-		if player.ID == id {
-			removedPlayer = *player
-			continue
-		}
-		newSlice = append(newSlice, player)
-	}
-	Players = newSlice
-
-	if removedPlayer.ID == "" {
-		return nil, fmt.Errorf("PLAYER NOT FOUND")
+	if err != nil {
+		return nil, err
 	}
 
-	return &removedPlayer, nil
+	if err := p.client.Del(ctx, "player:"+id).Err(); err != nil {
+		return nil, err
+	}
+
+	return playerToRemove, nil
 }
 
 func (p *PlayerRedisRepository) FindByUsername(username string) (*entities.Player, error) {
-	for _, player := range Players {
+	iter := p.client.Scan(ctx, 0, "player:*", 0).Iterator()
 
-		if player.Username == username {
-			return player, nil
+	for iter.Next(ctx) {
+		val, err := p.client.Get(ctx, iter.Val()).Result()
+		if err != nil {
+			continue
 		}
 
+		var player entities.Player
+		if err := json.Unmarshal([]byte(val), &player); err != nil {
+			continue
+		}
+		if player.Username == username {
+			return &player, nil
+		}
 	}
 	return nil, fmt.Errorf("player not found")
 }
 func (p *PlayerRedisRepository) FindByID(id string) (*entities.Player, error) {
-	for _, player := range Players {
-
-		if player.ID == id {
-			return player, nil
-		}
-
+	playerRawData, err := p.client.Get(ctx, "player:"+id).Result()
+	if err == redis.Nil {
+		return nil, fmt.Errorf("player not found")
+	} else if err != nil {
+		return nil, err
 	}
-	return nil, fmt.Errorf("Player not found")
+	var player entities.Player
+	if err := json.Unmarshal([]byte(playerRawData), &player); err != nil {
+		return nil, err
+	}
+	return &player, nil
 }

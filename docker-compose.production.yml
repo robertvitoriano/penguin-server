@@ -1,0 +1,19 @@
+services:
+  penguin-server:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    image: penguin-server:prod
+    ports:
+    - "7777:7777"
+
+  redis:
+    image: redis:8
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

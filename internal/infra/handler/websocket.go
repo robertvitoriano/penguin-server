@@ -124,6 +124,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 			if err != nil {
 				log.Println(err.Error())
 			}
+
 			for _, player := range players {
 				if player.ID == claims["id"] {
 
@@ -135,6 +136,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 							Y: &eventPayload.Position.Y,
 						}
 					}
+					ws.playerLiveDataRepository.Save(player)
 
 					break
 				}
@@ -197,7 +199,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				return
 			}
 
-			players, err := redis.NewPlayerRepository().List()
+			players, err := ws.playerLiveDataRepository.List()
 
 			if err != nil {
 				fmt.Println(err.Error())
@@ -206,6 +208,7 @@ func (ws *Websocket) handleIncomingMessage(currentConn *websocket.Conn, eventTyp
 				if player.ID == claims["id"] {
 					player.Position.X = &eventPayload.Position.X
 					player.Position.Y = &eventPayload.Position.Y
+					ws.playerLiveDataRepository.Save(player)
 
 					var emitEventPayload payloads.UpdateOtherPlayerPositionEvent
 

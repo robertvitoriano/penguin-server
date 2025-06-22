@@ -25,9 +25,9 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	db := database.NewMysqlDabase()
+	mysqlDatabase := database.NewMysqlDabase()
 
-	db.Dsn = fmt.Sprintf(
+	mysqlDatabase.Dsn = fmt.Sprintf(
 		"%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local",
 		os.Getenv("MYSQL_USER"),
 		os.Getenv("MYSQL_PASSWORD"),
@@ -35,17 +35,19 @@ func main() {
 		os.Getenv("MYSQL_PORT"),
 		os.Getenv("MYSQL_DATABASE"))
 
-	db.Db = &gorm.DB{}
-	db.DbType = "mysql"
-	db.Connect()
+	mysqlDatabase.Db = &gorm.DB{}
+	mysqlDatabase.DbType = "mysql"
+	mysqlDatabase.Connect()
 
+	redisDatabase := database.NewRedisDatabase(fmt.Sprintf("%v:6379", os.Getenv("REDIS_HOST")), "", 0)
+	redisClient := redisDatabase.Connect()
 	router := mux.NewRouter()
 	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	playerPersistencyRepository := mysql.NewPlayerRepository(db.Db)
-	playerLiveDataRepository := redis.NewPlayerRepository()
+	playerPersistencyRepository := mysql.NewPlayerRepository(mysqlDatabase.Db)
+	playerLiveDataRepository := redis.NewPlayerRepository(redisClient)
 
 	playerHandler := handler.NewPlayerHandler(playerPersistencyRepository, playerLiveDataRepository)
 	levelHandler := handler.NewLevelHandler()
@@ -53,15 +55,15 @@ func main() {
 
 	router.HandleFunc("/players/{id}", playerHandler.GetPlayer).Methods("GET")
 	router.HandleFunc("/players", func(w http.ResponseWriter, r *http.Request) {
-		playerHandler.CreatePlayer(w, r, ws, db.Db)
+		playerHandler.CreatePlayer(w, r, ws, mysqlDatabase.Db)
 	}).Methods("POST")
 	router.HandleFunc("/players", playerHandler.GetPlayers).Methods("GET")
 	router.HandleFunc("/load-level", func(w http.ResponseWriter, r *http.Request) {
-		levelHandler.LoadLevel(w, r, db.Db)
+		levelHandler.LoadLevel(w, r, mysqlDatabase.Db)
 	}).Methods("POST")
 
 	router.HandleFunc("/ws", ws.ServeWebsocket).Methods("GET")
-	router.HandleFunc("/players/{id}", playerHandler.GetPlayer)
+
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"https://penguim-adventure.robertvitoriano.com", "http://localhost:8000", fmt.Sprintf("http://%v:8000", os.Getenv("COMPUTER_IP"))},
 
