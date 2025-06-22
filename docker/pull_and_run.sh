@@ -1,10 +1,10 @@
 #!/bin/bash
 
-ECR_REGISTRY="<your-ecr-registry>"
-ECR_REPOSITORY="<your-ecr-repository>"
+ECR_REGISTRY=123456789012.dkr.ecr.us-east-1.amazonaws.com
+ECR_REPOSITORY=penguin-server
 IMAGE_TAG="latest"
 CONTAINER_NAME="penguin-server"
-REGION="<your-region>"
+REGION=us-east-1
 
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
 

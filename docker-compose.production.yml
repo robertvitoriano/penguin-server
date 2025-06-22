@@ -1,5 +1,6 @@
 services:
   penguin-server:
+    container_name: penguin-server
     image: 522814693249.dkr.ecr.us-east-1.amazonaws.com/penguin-server:latest
     ports:
     - "7777:7777"
