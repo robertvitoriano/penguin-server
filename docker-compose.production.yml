@@ -1,9 +1,6 @@
 services:
   penguin-server:
-    build:
-      context: .
-      dockerfile: ./docker/Dockerfile
-    image: penguin-server:prod
+    image: 522814693249.dkr.ecr.us-east-1.amazonaws.com/penguin-server:latest
     ports:
     - "7777:7777"
 
