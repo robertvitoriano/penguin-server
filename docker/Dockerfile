@@ -20,4 +20,5 @@ EXPOSE 7777
 
 COPY .env ./
 
+COPY ./assets ./assets
 CMD ["./penguin-server"]
