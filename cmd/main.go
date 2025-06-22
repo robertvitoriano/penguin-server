@@ -39,7 +39,7 @@ func main() {
 	mysqlDatabase.DbType = "mysql"
 	mysqlDatabase.Connect()
 
-	redisDatabase := database.NewRedisDatabase("localhost:6379", "", 0)
+	redisDatabase := database.NewRedisDatabase(fmt.Sprintf("%v:6379", os.Getenv("REDIS_HOST")), "", 0)
 	redisClient := redisDatabase.Connect()
 	router := mux.NewRouter()
 	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
