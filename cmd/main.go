@@ -63,7 +63,7 @@ func main() {
 	}).Methods("POST")
 
 	router.HandleFunc("/ws", ws.ServeWebsocket).Methods("GET")
-	router.HandleFunc("/players/{id}", playerHandler.GetPlayer)
+
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"https://penguim-adventure.robertvitoriano.com", "http://localhost:8000", fmt.Sprintf("http://%v:8000", os.Getenv("COMPUTER_IP"))},
 
