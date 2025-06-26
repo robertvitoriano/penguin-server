@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: penguin-server-deployment
+  labels:
+    app: penguin-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: penguin-server
+  template:
+    metadata:
+      labels:
+        app: penguin-server
+    spec:
+      containers:
+      - name: penguin-server
+        image: robertvitoriano/penguin-server:latest
+        ports:
+        - containerPort: 7777
+        env:
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: penguin-secret
+                key: MYSQL_USER
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: penguin-secret
+                key: MYSQL_PASSWORD
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: penguin-secret
+                key: MYSQL_DATABASE
+          - name: MYSQL_HOST
+            valueFrom:
+              secretKeyRef:
+                name: penguin-secret
+                key: MYSQL_HOST
+          - name: MYSQL_PORT
+            valueFrom:
+              secretKeyRef:
+                name: penguin-secret
+                key: MYSQL_PORT
+          - name: COMPUTER_IP
+            value: "localhost"
+      - name: penguin-redis
+        image: redis:8
