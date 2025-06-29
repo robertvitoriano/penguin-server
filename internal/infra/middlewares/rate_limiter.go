@@ -21,9 +21,12 @@ type RateLimiter struct {
 
 func (rl *RateLimiter) Allow(key string) (bool, error) {
 
-	clientIsBlocked := rl.client.Exists(rl.context, fmt.Sprintf("%v:blocked", key))
+	exists, err := rl.client.Exists(rl.context, fmt.Sprintf("%v:blocked", key)).Result()
+	if err != nil {
+		return false, fmt.Errorf("redis error: %w", err)
+	}
 
-	if clientIsBlocked != nil {
+	if exists > 0 {
 		return false, fmt.Errorf("client is blocked")
 	}
 
@@ -31,13 +34,11 @@ func (rl *RateLimiter) Allow(key string) (bool, error) {
 
 	incr := pipe.Incr(rl.context, key)
 
-	_, err := pipe.Exec(rl.context)
+	pipe.Expire(rl.context, key, rl.window)
 
+	_, err = pipe.Exec(rl.context)
 	currentRequestCount := incr.Val()
 
-	if currentRequestCount == 1 {
-		pipe.Expire(rl.context, key, rl.window)
-	}
 	if err != nil {
 		return false, err
 	}
@@ -69,9 +70,9 @@ func RateLimiterMiddleware(next http.Handler, rateLimiter RateLimiter) http.Hand
 
 		}
 		if !allowedRequest {
-			http.Error(w, "Too many requests", http.StatusTooManyRequests)
 			rateLimiter.client.Set(rateLimiter.context, fmt.Sprintf("%v:blocked", clientIp), "blocked", rateLimiter.blockDuration)
 			log.Println("Too many requests")
+			http.Error(w, "Too many requests", http.StatusTooManyRequests)
 			return
 		}
 
