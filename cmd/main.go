@@ -77,7 +77,7 @@ func main() {
 
 	handler := c.Handler(router)
 
-	rateLimiter := middlewares.NewRateLimiter(30, 1*time.Minute, context.Background(), *redisClient)
+	rateLimiter := middlewares.NewRateLimiter(60, 1*time.Minute, 2*60*60*time.Minute, context.Background(), *redisClient)
 
 	handler = middlewares.RateLimiterMiddleware(handler, *rateLimiter)
 
