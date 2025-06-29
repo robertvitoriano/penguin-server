@@ -17,6 +17,7 @@ spec:
       containers:
       - name: penguin-server
         image: robertvitoriano/penguin-server:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 7777
         env:

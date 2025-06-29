@@ -41,7 +41,7 @@ func (rl *RateLimiter) Allow(key string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
+	log.Printf("Current request %v", int(currentRequestCount))
 	return int(currentRequestCount) <= rl.limit, nil
 }
 
