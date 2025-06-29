@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/robertvitoriano/penguin-server/internal/infra/database"
 	"github.com/robertvitoriano/penguin-server/internal/infra/handler"
+	"github.com/robertvitoriano/penguin-server/internal/infra/middlewares"
 	"github.com/robertvitoriano/penguin-server/internal/infra/repository/mysql"
 	"github.com/robertvitoriano/penguin-server/internal/infra/repository/redis"
 	"github.com/rs/cors"
@@ -75,6 +77,9 @@ func main() {
 
 	handler := c.Handler(router)
 
+	rateLimiter := middlewares.NewRateLimiter(3, 2*time.Minute, context.Background(), *redisClient)
+
+	handler = middlewares.RateLimiterMiddleware(router, *rateLimiter)
 	fmt.Println("Server running on port 7777...")
 	log.Fatal(http.ListenAndServe(":7777", handler))
 
