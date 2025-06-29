@@ -23,14 +23,13 @@ func (rl *RateLimiter) Allow(key string) (bool, error) {
 
 	incr := pipe.Incr(rl.context, key)
 
+	_, err := pipe.Exec(rl.context)
+
 	currentRequestCount := incr.Val()
 
 	if currentRequestCount == 1 {
 		pipe.Expire(rl.context, key, rl.window)
 	}
-
-	_, err := pipe.Exec(rl.context)
-
 	if err != nil {
 		return false, err
 	}
@@ -59,8 +58,9 @@ func RateLimiterMiddleware(next http.Handler, rateLimiter RateLimiter) http.Hand
 			log.Println("Rate limiter error")
 		}
 		if !allowedRequest {
+			http.Error(w, "Too many requests", http.StatusTooManyRequests)
 			log.Println("Too many requests")
-
+			return
 		}
 
 		next.ServeHTTP(w, r)

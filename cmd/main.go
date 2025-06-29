@@ -77,9 +77,10 @@ func main() {
 
 	handler := c.Handler(router)
 
-	rateLimiter := middlewares.NewRateLimiter(3, 2*time.Minute, context.Background(), *redisClient)
+	rateLimiter := middlewares.NewRateLimiter(30, 1*time.Minute, context.Background(), *redisClient)
 
-	handler = middlewares.RateLimiterMiddleware(router, *rateLimiter)
+	handler = middlewares.RateLimiterMiddleware(handler, *rateLimiter)
+
 	fmt.Println("Server running on port 7777...")
 	log.Fatal(http.ListenAndServe(":7777", handler))
 
