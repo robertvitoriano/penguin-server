@@ -18,7 +18,5 @@ COPY --from=builder /app/penguin-server .
 
 EXPOSE 7777
 
-COPY .env ./
-
 COPY ./assets ./assets
 CMD ["./penguin-server"]
