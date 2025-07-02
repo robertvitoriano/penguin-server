@@ -21,12 +21,12 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	if os.Getenv("KUBERNETES_SERVICE_HOST") == "" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Println("Warning: .env file not found, skipping...")
+		}
 	}
-
 	mysqlDatabase := database.NewMysqlDabase()
 
 	mysqlDatabase.Dsn = fmt.Sprintf(
