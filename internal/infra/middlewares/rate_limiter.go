@@ -42,7 +42,7 @@ func (rl *RateLimiter) Allow(key string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	log.Printf("Current request %v", int(currentRequestCount))
+
 	return int(currentRequestCount) <= rl.limit, nil
 }
 
@@ -63,6 +63,8 @@ func RateLimiterMiddleware(next http.Handler, rateLimiter RateLimiter) http.Hand
 
 		clientIp, _, _ := net.SplitHostPort(r.RemoteAddr)
 		allowedRequest, err := rateLimiter.Allow(clientIp)
+
+		log.Printf("Client IP: %v", clientIp)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
