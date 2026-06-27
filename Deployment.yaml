@@ -21,6 +21,8 @@ spec:
         ports:
         - containerPort: 7777
         env:
+          - name: REDIS_ADDR
+            value: "localhost:6379"
           - name: MYSQL_USER
             valueFrom:
               secretKeyRef:

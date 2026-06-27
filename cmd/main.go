@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -19,6 +21,23 @@ import (
 	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
+
+func redisAddr() string {
+	if addr := os.Getenv("REDIS_ADDR"); addr != "" {
+		return addr
+	}
+
+	host := os.Getenv("REDIS_HOST")
+	if host == "" {
+		host = "localhost"
+	}
+
+	if strings.Contains(host, ":") {
+		return host
+	}
+
+	return net.JoinHostPort(host, "6379")
+}
 
 func main() {
 	if os.Getenv("KUBERNETES_SERVICE_HOST") == "" {
@@ -41,8 +60,15 @@ func main() {
 	mysqlDatabase.DbType = "mysql"
 	mysqlDatabase.Connect()
 
-	redisDatabase := database.NewRedisDatabase(fmt.Sprintf("%v:6379", os.Getenv("REDIS_HOST")), "", 0)
+	redisAddress := redisAddr()
+	redisDatabase := database.NewRedisDatabase(redisAddress, "", 0)
 	redisClient := redisDatabase.Connect()
+	redisContext, cancelRedisContext := context.WithTimeout(context.Background(), 5*time.Second)
+	if err := redisClient.Ping(redisContext).Err(); err != nil {
+		cancelRedisContext()
+		log.Fatalf("failed to connect to redis at %s: %v", redisAddress, err)
+	}
+	cancelRedisContext()
 	router := mux.NewRouter()
 	router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

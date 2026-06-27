@@ -46,4 +46,10 @@ echo "Updating container to the latest image..."
 docker stop $CONTAINER_NAME 2>/dev/null || true
 docker rm $CONTAINER_NAME 2>/dev/null || true
 
-docker run -d --name $CONTAINER_NAME -p 7777:7777 "$FULL_IMAGE"
+docker run -d \
+  --name $CONTAINER_NAME \
+  --env-file .env \
+  --add-host=host.docker.internal:host-gateway \
+  -e REDIS_ADDR=host.docker.internal:6379 \
+  -p 7777:7777 \
+  "$FULL_IMAGE"

@@ -27,7 +27,7 @@ func (rl *RateLimiter) Allow(key string) (bool, error) {
 	}
 
 	if exists > 0 {
-		return false, fmt.Errorf("client is blocked")
+		return false, nil
 	}
 
 	pipe := rl.client.TxPipeline()
@@ -69,6 +69,7 @@ func RateLimiterMiddleware(next http.Handler, rateLimiter RateLimiter) http.Hand
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			log.Println(err.Error())
+			return
 
 		}
 		if !allowedRequest {
